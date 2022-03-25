@@ -1,0 +1,20 @@
+HOW TO BUILD FOR WINDOWS?
+--------------------------
+go build
+
+
+HOW TO BUILD FOR LINUX?
+--------------------------
+set GOOS=aix 
+go build
+
+
+HOW TO BUILD FOR AIX?
+--------------------------
+set GOOS=aix 
+set GOARCH=ppc64 
+go build
+
+
+set GOPATH=C:\msys64\mingw64\Go
+set GOROOT=C:\Program Files\Go
