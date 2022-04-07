@@ -1,4 +1,4 @@
-# Build yCrash agent for MacOS
+# Build yCrash agent in MacOS
 
 ### Prerequisite
 1. Install Go
