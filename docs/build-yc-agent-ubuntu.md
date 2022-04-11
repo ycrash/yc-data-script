@@ -61,6 +61,6 @@ git clone https://github.com/ycrash/ycrash-agent.git
 ```
 go build -a -ldflags "-linkmode external -extldflags '-static' -s -w"
 ```
-9. Once the build is completed, you will find ```yc.sh``` file inside ```/opt/workspace/yc-agent-repo/ycrash-agent/yc``` directory. 
+9. Once the build is completed, you will find ```yc``` file inside ```/opt/workspace/yc-agent-repo/ycrash-agent/yc``` directory. 
 
 You can find different yCrash agent arguments in the [official documentation](https://docs.ycrash.io/ycrash-agent/all-agent-arguments.html#all-arguments).

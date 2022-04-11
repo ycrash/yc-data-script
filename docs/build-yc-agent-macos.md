@@ -11,6 +11,6 @@
 ```
 go build
 ```
-3. Once the build is completed, you will find ```yc.sh``` file under ```ycrash-agent/yc``` directory.
+3. Once the build is completed, you will find ```yc``` file under ```ycrash-agent/yc``` directory.
 
 You can find different yCrash agent arguments in the [official documentation](https://docs.ycrash.io/ycrash-agent/all-agent-arguments.html#all-arguments).
