@@ -72,8 +72,6 @@ You can launch yCrash agent in following [3 different modes](https://docs.ycrash
 Please refer to any one of the following links if you want to build the ycrash agent in that corresponding operating system:
 
 1. Build yc agent in [Windows](/docs/Build%20yc%20agent%20in%20Windows.pdf)
-2. Build yc agent in [Alpine](/docs/build-yc-agent-alpine.md)
-3. Build yc agent in [Centos](/docs/build-yc-agent-centos.md)
-4. Build yc agent in [Linux](/docs/build-yc-agent-linux.md)
-5. Build yc agent in [MacOS](/docs/build-yc-agent-macos.md)
-6. Build yc agent in [Ubuntu](/docs/build-yc-agent-ubuntu.md)
+2. Build yc agent in [Linux](/docs/build-yc-agent-linux.md)
+3. Build yc agent in [MacOS](/docs/build-yc-agent-macos.md)
+
