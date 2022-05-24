@@ -30,6 +30,7 @@ yCrash agent is a simple Golang script that captures 16 different artifacts from
 3. In the unzipped folder you will find two files:
 
     a) ```yc``` - If you are running on Unix/Linux/Mac, then use this file.
+    
     b) ```yc.exe``` - If you are running on Windows, then use this file.
 
     You need to invoke yCrash script with following arguments:
