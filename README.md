@@ -1,8 +1,8 @@
 # ycrash-agent
 
-## What does the yCrash agent do?
-
 <img src="/docs/images/360-degree-data.png" width="600" height="300" />
+
+## What does the yCrash agent do?
 
 yCrash agent is a simple Golang script that captures 16 different artifacts from your application in a **pristine** manner. These artifacts will be highly useful to troubleshoot performance problems. Below is the list of artifacts captured:
 
@@ -67,7 +67,7 @@ You can launch yCrash agent in following [3 different modes](https://docs.ycrash
 2. **API Mode:** In this mode you can integrate yCrash agent with your current monitoring tools such as AppDynamics, New Relic, Dynatrace, …
 3. **M3 (Micro-metrics Monitoring) mode:** In this mode, yCrash agent proactively detect performance outages much earlier before it surfaces
 
-### How to build the agent?
+## How to build the agent?
 
 Please refer to any one of the following links if you want to build the ycrash agent in that corresponding operating system:
 
