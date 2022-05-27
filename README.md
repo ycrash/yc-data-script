@@ -1,6 +1,6 @@
 # ycrash-agent
 
-<img src="/docs/images/360-degree-data.png" width="600" height="300" />
+![img](/docs/images/360-degree.png)
 
 ## What does the yCrash agent do?
 
