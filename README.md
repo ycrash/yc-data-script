@@ -74,4 +74,3 @@ Please refer to any one of the following links if you want to build the ycrash a
 1. Build yc agent in [Windows](/docs/Build%20yc%20agent%20in%20Windows.pdf)
 2. Build yc agent in [Linux](/docs/build-yc-agent-linux.md)
 3. Build yc agent in [MacOS](/docs/build-yc-agent-macos.md)
-

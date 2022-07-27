@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"time"
 
@@ -34,7 +35,7 @@ func (t *Top) Run() (result Result, err error) {
 		}
 	}()
 	t.Cmd, err = shell.CommandStartInBackgroundToWriter(file, shell.Top)
-	if err != nil {
+	if err != nil && !errors.Is(err, exec.ErrNotFound) {
 		return
 	}
 	if t.Cmd.IsSkipped() {
@@ -121,7 +122,7 @@ func (t *TopH) Run() (result Result, err error) {
 		return
 	}
 	t.Cmd, err = shell.CommandStartInBackgroundToWriter(file, command)
-	if err != nil {
+	if err != nil && !errors.Is(err, exec.ErrNotFound) {
 		return
 	}
 	if t.Cmd.IsSkipped() {

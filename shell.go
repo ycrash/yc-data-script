@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"shell/logger"
 	"strings"
 )
@@ -130,6 +131,9 @@ func NewCommand(cmd Command, hookers ...Hooker) CmdManager {
 		command.Env = os.Environ()
 		command.Env = append(command.Env, Env...)
 	}
+	for _, hooker := range hookers {
+		hooker.After(command)
+	}
 	if wait {
 		return &WaitCmd{command}
 	}
@@ -236,10 +240,17 @@ err: %v
 	return
 }
 
-func Executable() string {
-	exe, err := os.Executable()
+var workDir string
+
+func init() {
+	workDir, _ = os.Getwd()
+}
+
+func Executable() (path string) {
+	path, err := os.Executable()
 	if err != nil {
-		return "../yc"
+		path = filepath.Join(workDir, os.Args[0])
+		logger.Warn().Err(err).Str("path", path).Msg("Failed to get executable path")
 	}
-	return exe
+	return
 }

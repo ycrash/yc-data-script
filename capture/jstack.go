@@ -26,15 +26,18 @@ func NewJStack(javaHome string, pid int) *JStack {
 }
 
 func (t *JStack) Run() (result Result, err error) {
-	b1 := make(chan int, 1)
-	b2 := make(chan int, 1)
-	e1 := make(chan error, 1)
-	e2 := make(chan error, 1)
+	b1 := make(chan int, count)
+	b2 := make(chan int, count)
+	e1 := make(chan error, count)
+	e2 := make(chan error, count)
 	defer func() {
 		close(b1)
 		close(b2)
 	}()
 	go func() {
+		defer func() {
+			close(e1)
+		}()
 		for {
 			n, ok := <-b1
 			if !ok {
@@ -57,6 +60,14 @@ func (t *JStack) Run() (result Result, err error) {
 					return
 				}
 			}
+			e := jstack.Sync()
+			if e != nil {
+				logger.Log("failed to sync file %s", e)
+			}
+			_, e = jstack.WriteString("\nFull thread dump\n")
+			if e != nil {
+				logger.Log("failed to write file %s", e)
+			}
 			_, err = (&JStackF{
 				jstack:   jstack,
 				javaHome: t.javaHome,
@@ -64,10 +75,6 @@ func (t *JStack) Run() (result Result, err error) {
 			}).Run()
 			e1 <- err
 
-			_, e := jstack.WriteString("\n")
-			if e != nil {
-				logger.Log("failed to write file %s", e)
-			}
 			e = jstack.Sync()
 			if e != nil {
 				logger.Log("failed to sync file %s", e)
@@ -80,6 +87,9 @@ func (t *JStack) Run() (result Result, err error) {
 	}()
 
 	go func() {
+		defer func() {
+			close(e2)
+		}()
 		for {
 			n, ok := <-b2
 			if !ok {
@@ -96,11 +106,11 @@ func (t *JStack) Run() (result Result, err error) {
 		b1 <- n
 		err = <-e1
 		if err != nil {
-			break
+			logger.Warn().Err(err).Msg("Failed to run jstack with err")
 		}
 		err = <-e2
 		if err != nil {
-			break
+			logger.Warn().Err(err).Msg("Failed to run top h with err")
 		}
 
 		if n == count {
