@@ -1,4 +1,4 @@
-# ycrash-agent
+# yc-data-script
 
 ![img](/docs/images/360-degree.png)
 
