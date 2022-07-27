@@ -27,13 +27,13 @@ yCrash agent is a simple Golang script that captures 16 different artifacts from
 
 1. Download latest yCrash agent script from [this](https://tier1app.com/dist/ycrash/yc-agent-latest.zip) location
 2. Unzip the downloaded ```yc-agent-latest.zip``` file. (Say you are unzipping in '/opt/workspace/yc-agent-latest' folder)
-3. In the unzipped folder you will find two files:
+3. In the unzipped folder you will find agent scripts by operating system:
 
-    a) ```yc``` - If you are running on Unix/Linux/Mac, then use this file.
-    
-    b) ```yc.exe``` - If you are running on Windows, then use this file.
+a) ```linux/yc``` - If you are running on Unix/Linux, then use this script.
 
-    You need to invoke yCrash script with following arguments:
+b) ```windows/yc.exe``` - If you are running on Windows, then use this script.
+
+c) ```mac/yc``` - If you are running on MAC, then use this script.
 
     ```
     ./yc -j {JAVA_HOME} -onlyCapture -p {PID} -hd
