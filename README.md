@@ -50,7 +50,7 @@ Where,
 ./yc -j /usr/java/jdk1.8.0_141 -onlyCapture -p 15326 -hd
 ```
 
-When you pass the above arguments, yCrash script will capture all the application level and system level artifacts/logs from the server from the target JVM & host for analysis. Captured artifacts will be compressed into a zip file and stored in the current directory where the above command was executed. The zip file will have the name in the format: 'yc-YYYY-MM-DDTHH-mm-ss.zip'. 
+When you pass the above arguments, yc-data-script will capture all the application level and system level artifacts/logs from the server from the target JVM & host for analysis. Captured artifacts will be compressed into a zip file and stored in the current directory where the above command was executed. The zip file will have the name in the format: 'yc-YYYY-MM-DDTHH-mm-ss.zip'. 
     
 **Example:** 'yc-2021-03-06T14-02-42.zip'.
 
