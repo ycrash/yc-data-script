@@ -1,75 +1,82 @@
-# yc-data-script
-
-![img](/docs/images/360-degree.png)
-
-## What does the yc-data-script do?
-
-yc-data-script is a simple Golang script that captures 16 different artifacts from your application in a **pristine** manner. These artifacts will be highly useful to troubleshoot performance problems. Below is the list of artifacts captured:
-
-1. Garbage collection log
-2. Thread dump
-3. Heap dump
-4. Heap substitute
-5. top
-6. ps
-7. top -H
-8. Disk usage
-9. dmesg
-10. netstat
-11. ping
-12. vmstat
-13. iostat
-14. Kernel parameters
-15. Application Log
-16. Metadata
-
-## How to run the yc-data-script?
-
-1. Download latest yc-data-script from [this](https://tier1app.com/dist/ycrash/yc-agent-latest.zip) location
-2. Unzip the downloaded ```yc-agent-latest.zip``` file. (Say you are unzipping in '/opt/workspace/yc-agent-latest' folder)
-3. In the unzipped folder you will find yc-data-script by operating system:
-
-a) ```linux/yc``` - If you are running on Unix/Linux, then use this script.
-
-b) ```windows/yc.exe``` - If you are running on Windows, then use this script.
-
-c) ```mac/yc``` - If you are running on MAC, then use this script.
+### Usage of argument options:
+```bash
+Usage of yc:
+  -a string
+        The APP Name of the target
+  -c string
+        The config file path to load
+  -cmd value
+        The command to be executed, should be paired with '-urlParams' together
+  -d    Delete logs folder created during analyse, default is false
+  -gcPath string
+        The gc log file to be uploaded while it exists
+  -hd
+        Capture heap dump, default is false
+  -hdPath string
+        The heap dump file to be uploaded while it exists
+  -j string
+        The java home path to be used. Default will try to use os env 'JAVA_HOME' if 'JAVA_HOME' is not empty, for example: /usr/lib/jvm/java-8-openjdk-amd64
+  -k string
+        The API Key that will be used to make API requests, for example: tier1app@12312-12233-1442134-112
+  -p int
+        The process Id of the target, for example: 3121
+  -s string
+        The server url that will be used to upload data, for example: https://ycrash.companyname.com
+  -tdPath string
+        The thread dump file to be uploaded while it exists
+  -urlParams value
+        The params to be added at the end of upload request url, should be paired with '-cmd' together
+  -version
+        Show the version of this program
 
 ```
-./yc -j {JAVA_HOME} -onlyCapture -p {PID} -hd
+### Example of config file:
+```yaml
+version: "1"
+options:
+  a: name
+  d: false
+  hd: false
+  j: /usr/lib/jvm/java-8-openjdk-amd64
+  k: buggycompany@e094aasdsa-c3eb-4c9a-8254-f0dd107245cc
+  p: 3121
+  s: https://gceasy.io
+  gcPath: /var/log/gc.log
+  hdPath: /var/log/heapdump.log
+  tdPath: /var/log/threaddump.log
+  cmds:
+  - urlParams: dt=vmstat
+    cmd: vmstat 1 1
 ```
-Where,
 
-**JAVA_HOME** is the home directory where JDK is installed
+The config file is using yaml format. The name of the option keys is same as the name of argument options.
 
-**PID** is the target JVM's process ID
+'-s': the server url that will be used to upload data.  
+'-k': the API key that will be used to make API requests.
+'-j': the java home path to be used. Default will try to use os env 'JAVA_HOME' if 'JAVA_HOME' is not empty.
+'-a': the app name of the target.  
+'-p': the pid of the target.  
+'-d': delete logs folder created during analyse, default is false.  
+'-hd': capture heap dump, default is false.  
+'-gcPath': the gc log file to be uploaded while it exists, otherwise it will captures one if failed to get the path from '-Xlog:gc' or '-Xloggc'.  
+'-hdPath': the heap dump file to be uploaded while it exists.  
+'-tdPath': the thread dump file to be uploaded while it exists, otherwise it will captures one.  
 
-**Example:**
+Only for argument options:  
+'-version' show the version of this program.  
+'-c': the config file path to load.  
 
+### Example to capture info from target with pid 3121:
+
+`yc -p 3121 -s https://gceasy.io -k testCompany@e094a34e-c3eb-4c9a-8254-f0dd107245cc -j /usr/lib/jvm/java-11-openjdk-amd64 -c ./config.yaml`
+
+### Example to execute custom commands after the capturing:
+
+- By arguments. One '-urlParams' should be paired with one '-cmd'.  
+`yc ... -urlParams dt=vmstat -cmd "vmstat 1 1" -urlParams dt=pidstat -cmd "pidstat 1 1" ...` 
+- By config file. 
+```yaml
+  cmds:
+  - urlParams: dt=vmstat
+    cmd: vmstat 1 1
 ```
-./yc -j /usr/java/jdk1.8.0_141 -onlyCapture -p 15326 -hd
-```
-
-When you pass the above arguments, yc-data-script will capture all the application level and system level artifacts/logs from the server from the target JVM & host for analysis. Captured artifacts will be compressed into a zip file and stored in the current directory where the above command was executed. The zip file will have the name in the format: 'yc-YYYY-MM-DDTHH-mm-ss.zip'. 
-    
-**Example:** 'yc-2021-03-06T14-02-42.zip'.
-
-## How to analyze the artifacts generated by the yc-data-script?
-
-You can analyze the artifacts captured by yc-data-script either manually or through [yCrash server](https://ycrash.io/). yCrash server analyzes all the captured data and generates a root cause analysis report instantly. You can use the [Bundle upload](https://docs.ycrash.io/ycrash-features/bundle-upload.html#step-1-go-to-upload-incident-form) feature in the yCrash server to analyze the captured 360-degree data. 
-
-### Advanced launch modes
-
-You can launch yc-data-script in following [3 different modes](https://docs.ycrash.io/ycrash-agent/launch-modes.html#launch-modes):
-
-1. **On-demand Mode:** In this mode you can directly transmit 360-degree artifacts from your server to yCrash server for analysis.
-2. **API Mode:** In this mode you can integrate yc-data-script with your current monitoring tools such as AppDynamics, New Relic, Dynatrace, …
-3. **M3 (Micro-metrics Monitoring) mode:** In this mode, yc-data-script proactively detect performance outages much earlier before it surfaces
-
-## How to build the yc-data-script?
-
-Please refer to any one of the following links if you want to build the yc-data-script in that corresponding operating system:
-
-1. Build yc-data-script in [Windows](/docs/Build%20yc%20agent%20in%20Windows.pdf)
-2. Build yc-data-script in [Linux](/docs/build-yc-agent-linux.md)
-3. Build yc-data-script in [MacOS](/docs/build-yc-agent-macos.md)
