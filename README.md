@@ -35,6 +35,7 @@ b) ```windows/yc.exe``` - If you are running on Windows, then use this script.
 
 c) ```mac/yc``` - If you are running on MAC, then use this script.
 
+4. You can execute the yc script by issuing following command:
 ```
 ./yc -j {JAVA_HOME} -onlyCapture -p {PID} -hd
 ```
@@ -42,7 +43,7 @@ Where,
 
 **JAVA_HOME** is the home directory where JDK is installed
 
-**PID** is the target JVM's process ID
+**PID** is the troubled target process ID
 
 **Example:**
 
