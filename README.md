@@ -25,7 +25,7 @@ yc-data-script is a simple Golang script that captures 16 different artifacts fr
 
 ## How to run the yc-data-script?
 
-1. Download latest yc-data-script from [this](https://tier1app.com/dist/ycrash/yc-agent-latest.zip) location
+1. Download the latest yc-data-script from [this](https://tier1app.com/dist/ycrash/yc-agent-latest.zip) location
 2. Unzip the downloaded ```yc-agent-latest.zip``` file. (Say you are unzipping in '/opt/workspace/yc-agent-latest' folder)
 3. In the unzipped folder you will find yc-data-script by operating system:
 
