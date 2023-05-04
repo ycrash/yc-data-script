@@ -235,6 +235,9 @@ func mainLoop() {
 					}
 					parameters += "&pids=" + ps.String() + "&m3apptoken=" + ns.String()
 				}
+
+				parameters += "&cpuCount=" + strconv.Itoa(runtime.NumCPU())
+
 				finEp := fmt.Sprintf("%s/m3-fin?%s", config.GlobalConfig.Server, parameters)
 				resp, err := requestFin(finEp)
 				if err != nil {
@@ -1287,11 +1290,22 @@ func processGCLogFile(gcPath string, out string, dockerID string, pid int) (gc *
 			gcPath = filepath.Join(d, tf)
 		}
 	}
+
 	// -Xloggc:/home/ec2-user/buggyapp/gc.%p.log
 	// /home/ec2-user/buggyapp/gc.pid2843.log
 	if strings.Contains(gcPath, `%p`) {
-		gcPath = strings.Replace(gcPath, `%p`, "pid"+strconv.Itoa(pid), 1)
+		javaVersion, err := shell.GetLocalJavaVersion()
+		if err != nil {
+			logger.Log("unable to get local java version, err: %s", err.Error())
+		}
+
+		if javaVersion.Major > 8 {
+			gcPath = strings.Replace(gcPath, `%p`, ""+strconv.Itoa(pid), 1)
+		} else {
+			gcPath = strings.Replace(gcPath, `%p`, "pid"+strconv.Itoa(pid), 1)
+		}
 	}
+
 	if len(dockerID) > 0 {
 		err = shell.DockerCopy(out, dockerID+":"+gcPath)
 		if err == nil {
@@ -1455,6 +1469,8 @@ processId=%d
 appName=%s
 whoami=%s
 timestamp=%s
+timezone=%s
+cpuCount=%d
 javaVersion=%s
 osVersion=%s
 tags=%s`
@@ -1494,7 +1510,9 @@ func writeMetaInfo(processId int, appName, endpoint, tags string) (msg string, o
 	}
 	now := time.Now()
 	timestamp := now.Format("2006-01-02T15-04-05")
-	_, e = file.WriteString(fmt.Sprintf(metaInfoTemplate, hostname, processId, appName, un, timestamp, jv, ov, tags))
+	timezone, _ := now.Zone()
+	cpuCount := runtime.NumCPU()
+	_, e = file.WriteString(fmt.Sprintf(metaInfoTemplate, hostname, processId, appName, un, timestamp, timezone, cpuCount, jv, ov, tags))
 	if e != nil {
 		err = fmt.Errorf("write result err: %v, previous err: %v", e, err)
 		return

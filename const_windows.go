@@ -20,8 +20,8 @@ var (
 	TopH2               = NopCommand
 	Top4M3              = NopCommand
 	VMState             = NopCommand
-	DMesg               = NopCommand
-	DMesg2              = NopCommand
+	DMesg               = Command{WaitCommand, "PowerShell.exe", "-Command", "& { Get-EventLog -LogName System -Newest 20 -EntryType Error,FailureAudit,Warning | Select-Object TimeGenerated, EntryType, Message | ForEach-Object { Write-Host \"$($_.TimeGenerated) [$($_.EntryType)]: $($_.Message)\" }}"}
+	DMesg2              = Command{"wevtutil", "qe", "System", "/c:20", "/rd:true", "/f:text"}
 	GC                  = Command{"wmic", "process", "where", DynamicArg, "get", "ProcessId,Commandline"}
 	AppendJavaCoreFiles = Command{"cmd.exe", "/c", "type javacore.* > threaddump.out"}
 	AppendTopHFiles     = Command{"cmd.exe", "/c", "type topdashH.* >> threaddump.out"}
@@ -30,6 +30,7 @@ var (
 	OSVersion           = Command{WaitCommand, "PowerShell.exe", "-Command", "& {systeminfo | findstr /B /C:\"OS Name\" /C:\"OS Version\"}"}
 	KernelParam         = NopCommand
 	Ping                = Command{WaitCommand, "ping", "-n", "6"}
+	JavaVersionCommand  = Command{"java.exe", "-XshowSettings:java", "-version"}
 
 	SHELL = Command{"cmd.exe", "/c"}
 )
