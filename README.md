@@ -1,6 +1,6 @@
 # yc-data-script
 
-<img src="/docs/images/360-degree-1.png"/>
+![img](/docs/images/360-degree-1.png)
 
 ## What does the yc-data-script do?
 
