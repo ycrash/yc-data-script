@@ -4,56 +4,47 @@
 package shell
 
 import (
-	"bufio"
-	"bytes"
-	"errors"
+	"encoding/json"
 	"strconv"
 	"strings"
 
 	"shell/config"
+	"shell/logger"
 )
 
+type CIMProcess struct {
+	ProcessName string
+	CommandLine string
+	ProcessId   int
+}
+
+type CIMProcessList []CIMProcess
+
 func GetProcessIds(tokens config.ProcessTokens, excludes config.ProcessTokens) (pids map[int]string, err error) {
-	arg := "Name != 'WMIC.exe'"
-	command, err := M3PS.addDynamicArg(arg)
+	output, err := CommandCombinedOutput(M3PS)
 	if err != nil {
 		return
 	}
-	output, err := CommandCombinedOutput(command)
+
+	cimProcessList := CIMProcessList{}
+	err = json.Unmarshal(output, &cimProcessList)
 	if err != nil {
 		return
 	}
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	pids = make(map[int]string)
-	if !scanner.Scan() {
-		err = errors.New("no line found in the commandline result")
-		return
-	}
-	header := scanner.Text()
-	header = strings.TrimSpace(header)
-	indexProcessId := strings.Index(header, "ProcessId")
 
-	if indexProcessId < 0 {
-		err = errors.New("string ProcessId not found in the header line")
-		return
-	}
+	pids = map[int]string{}
 
-Next:
-	for scanner.Scan() {
-		line := scanner.Text()
-		line = strings.TrimSpace(line)
+	logger.Debug().Msgf("m3_windows GetProcessIds tokens: %v", tokens)
+	logger.Debug().Msgf("m3_windows GetProcessIds excludes: %v", excludes)
+	logger.Debug().Msgf("m3_windows GetProcessIds cimProcessList: %v", cimProcessList)
+
+NextProcess:
+	for _, cimProcess := range cimProcessList {
 		for _, exclude := range excludes {
-			p := strings.Index(line, string(exclude))
-			if p >= 0 {
-				continue Next
+			if strings.Contains(cimProcess.CommandLine, string(exclude)) {
+				continue NextProcess
 			}
 		}
-
-		if len(line) <= indexProcessId {
-			continue Next
-		}
-
-		wmicProcessId := strings.TrimSpace(line[indexProcessId:])
 
 		for _, t := range tokens {
 			token := string(t)
@@ -64,18 +55,29 @@ Next:
 				token = token[:index]
 			}
 
-			if token == wmicProcessId {
-				pid, err := strconv.Atoi(wmicProcessId)
-				if err != nil {
-					continue Next
+			if cimProcessContainsToken(cimProcess, token) {
+				if _, ok := pids[cimProcess.ProcessId]; !ok {
+					pids[cimProcess.ProcessId] = appName
 				}
-
-				if _, ok := pids[pid]; !ok {
-					pids[pid] = appName
-				}
-				continue Next
+				continue NextProcess
 			}
 		}
 	}
+	logger.Debug().Msgf("m3_windows GetProcessIds pids: %v", pids)
+
 	return
+}
+
+func cimProcessContainsToken(cimProcess CIMProcess, token string) bool {
+	if strings.Contains(cimProcess.CommandLine, token) {
+		return true
+	} else {
+		// token can be an int
+		tokenInt, _ := strconv.Atoi(token)
+		if tokenInt > 0 && cimProcess.ProcessId == tokenInt {
+			return true
+		}
+	}
+
+	return false
 }

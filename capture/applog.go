@@ -6,15 +6,21 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
 	"shell"
+	"shell/config"
+	"strings"
 
 	"github.com/mattn/go-zglob"
 )
 
+var compressedFileExtensions = []string{
+	"zip",
+	"gz",
+}
+
 type AppLog struct {
 	Capture
-	Paths []string
+	Paths config.AppLogs
 	N     uint
 }
 
@@ -23,10 +29,10 @@ func (t *AppLog) Run() (result Result, err error) {
 	errs := []error{}
 
 	for _, path := range t.Paths {
-		matches, err := zglob.Glob(path)
+		matches, err := zglob.Glob(string(path))
 
 		if err != nil {
-			r := Result{Msg: "invalid glob pattern: " + path, Ok: false}
+			r := Result{Msg: "invalid glob pattern: " + string(path), Ok: false}
 			e := err
 
 			results = append(results, r)
@@ -55,8 +61,25 @@ func (t *AppLog) CaptureSingleAppLog(filePath string) (result Result, err error)
 	defer src.Close()
 
 	fileBaseName := filepath.Base(filePath)
+	fileExt := filepath.Ext(filePath)          // .zip, .log
+	fileExt = strings.TrimPrefix(fileExt, ".") // zip, log
+	isCompressed := isCompressedFileExt(fileExt)
 
-	dst, err := os.Create("applog_" + fileBaseName)
+	// Initialize a counter variable
+	counter := 1
+
+	// Generate a unique filename by appending the sequential number
+	dstFileName := fmt.Sprintf("%d.appLogs.%s", counter, fileBaseName) // Example: 1.appLogs.abc.log
+
+	// Check if the file already exists with the generated name
+	for fileExists(dstFileName) {
+		// If the file exists, increment the counter and generate a new filename
+		counter++
+		dstFileName = fmt.Sprintf("%d.appLogs.%s", counter, fileBaseName) // Example: 2.appLogs.abc.log
+	}
+
+	dst, err := os.Create(dstFileName)
+
 	if err != nil {
 		return
 	}
@@ -66,10 +89,13 @@ func (t *AppLog) CaptureSingleAppLog(filePath string) (result Result, err error)
 		t.N = 1000
 	}
 
-	err = shell.PositionLastLines(src, t.N)
-	if err != nil {
-		return
+	if !isCompressed {
+		err = shell.PositionLastLines(src, t.N)
+		if err != nil {
+			return
+		}
 	}
+
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		return
@@ -81,9 +107,24 @@ func (t *AppLog) CaptureSingleAppLog(filePath string) (result Result, err error)
 		return
 	}
 
-	result.Msg, result.Ok = shell.PostData(t.Endpoint(), "applog&logName="+fileBaseName, dst)
+	dt := "applog&logName=" + fileBaseName
+	if isCompressed {
+		dt = dt + "&content-encoding=" + fileExt
+	}
+
+	result.Msg, result.Ok = shell.PostData(t.Endpoint(), dt, dst)
 
 	return
+}
+
+func isCompressedFileExt(s string) bool {
+	for _, ext := range compressedFileExtensions {
+		if ext == s {
+			return true
+		}
+	}
+
+	return false
 }
 
 func summarizeResults(results []Result, errs []error) (result Result, err error) {
