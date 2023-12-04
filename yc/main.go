@@ -10,6 +10,7 @@ import "C"
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -36,6 +37,7 @@ import (
 	"time"
 
 	"github.com/gentlemanautomaton/cmdline"
+	"github.com/mattn/go-zglob"
 	"github.com/pterm/pterm"
 	ps "github.com/shirou/gopsutil/v3/process"
 )
@@ -201,10 +203,17 @@ func mainLoop() {
 			for {
 				time.Sleep(config.GlobalConfig.M3Frequency)
 
-				timestamp := time.Now().Format("2006-01-02T15-04-05")
-				parameters := fmt.Sprintf("de=%s&ts=%s", getOutboundIP().String(), timestamp)
+				// Get the server's local time zone
+				serverTimeZone := getServerTimeZone()
+				parameters := fmt.Sprintf("de=%s&ts=%s", getOutboundIP().String(), time.Now().Format("2006-01-02T15-04-05"))
+
+				// Encode the server's time zone as base64
+				timezoneBase64 := base64.StdEncoding.EncodeToString([]byte(serverTimeZone))
+				parameters += "&timezoneID=" + timezoneBase64
+
 				endpoint := fmt.Sprintf("%s/m3-receiver?%s", config.GlobalConfig.Server, parameters)
-				pids, err := processM3(timestamp, endpoint, true, &accessLogPosition)
+
+				pids, err := processM3(time.Now().Format("2006-01-02T15-04-05"), endpoint, true, &accessLogPosition)
 				if err != nil {
 					logger.Log("WARNING: process failed, %s", err)
 					continue
@@ -283,6 +292,31 @@ Resp: %s
 --------------------------------
 `, ok, msg)
 	}
+}
+
+func getServerTimeZone() string {
+	// Make a request to ipinfo.io to get timezone information based on the server's IP address
+	resp, err := http.Get("https://ipinfo.io/timezone")
+
+	serverTime := time.Now()
+	fallbackZone, _ := serverTime.Zone()
+
+	if err != nil {
+		return fallbackZone
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fallbackZone
+	}
+
+	timezone := strings.TrimSpace(string(body))
+	if timezone == "" {
+		return fallbackZone
+	}
+
+	return timezone
 }
 
 func processResp(resp []byte, pid2Name map[int]string) (err error) {
@@ -606,6 +640,7 @@ func captureGC(pid int, gc *os.File, fn string) (file *os.File, jstat shell.CmdM
 			return
 		}
 	}
+	// file deepcode ignore CommandInjection: security vulnerability
 	file, jstat, err = shell.CommandStartInBackgroundToFile(fn,
 		shell.Command{shell.Executable(), "-p", strconv.Itoa(pid), "-gcCaptureMode"}, shell.EnvHooker{"pid": strconv.Itoa(pid)}, shell.SudoHooker{PID: pid})
 	return
@@ -860,9 +895,30 @@ Ignored errors: %v
 			logger.Log("Error on auto discovering app logs: %s", err.Error())
 		}
 
+		// To exclude GC log files from app logs discovery
+		pattern := capture.GetGlobPatternFromGCPath(gcPath, pid)
+		globFiles, globErr := zglob.Glob(pattern)
+		if globErr != nil {
+			logger.Log("App logs Auto discovery: Error on creating Glob pattern %s", pattern)
+		}
+
 		paths := config.AppLogs{}
 		for _, f := range discoveredLogFiles {
-			paths = append(paths, config.AppLog(f))
+			isGCLog := false
+			for _, fileName := range globFiles {
+				// To exclude discovered gc log such f as /tmp/buggyapp-%p-%t.log
+				// also exclude discovered gc log with rotation where such f as /tmp/buggyapp-%p-%t.log.0
+				// Where the `pattern` = /tmp/buggyapp-*-*.log
+				if strings.Contains(f, filepath.FromSlash(fileName)) {
+					isGCLog = true
+					logger.Log("App logs Auto discovery: Ignored %s because it is detected as a GC log", f)
+					break
+				}
+			}
+
+			if !isGCLog {
+				paths = append(paths, config.AppLog(f))
+			}
 		}
 
 		appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: paths, N: config.GlobalConfig.AppLogLineCount}))

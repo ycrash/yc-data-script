@@ -93,12 +93,26 @@ func (t *GC) Run() (result Result, err error) {
 	return
 }
 
+func GetGlobPatternFromGCPath(gcPath string, pid int) string {
+	gcPath = strings.Replace(gcPath, `%pid`, ""+strconv.Itoa(pid), 1)
+	gcPath = strings.Replace(gcPath, `%p`, "*", 1)
+
+	pattern := strings.ReplaceAll(gcPath, "%t", "*")
+	return pattern
+}
+
 func ProcessGCLogFile(gcPath string, out string, dockerID string, pid int) (gc *os.File, err error) {
 	if len(gcPath) <= 0 {
 		return
 	}
 	// -Xloggc:/app/boomi/gclogs/gc%t.log
 	if strings.Contains(gcPath, `%t`) {
+		// Temporary fix to make %p and %t work together
+		// Later we need to simplify the logic
+		originalGcPath := gcPath
+		gcPath = strings.Replace(gcPath, `%pid`, ""+strconv.Itoa(pid), 1)
+		gcPath = strings.Replace(gcPath, `%p`, "*", 1)
+
 		pattern := strings.ReplaceAll(gcPath, "%t", "*")
 		files, err := zglob.Glob(pattern)
 
@@ -114,8 +128,8 @@ func ProcessGCLogFile(gcPath string, out string, dockerID string, pid int) (gc *
 		})
 
 		if len(files) > 0 {
-			logger.Log("gcPath is updated from %s to %s", gcPath, files[0])
-			gcPath = files[0]
+			logger.Log("gcPath is updated from %s to %s", originalGcPath, files[0])
+			gcPath = filepath.FromSlash(files[0])
 		}
 	}
 

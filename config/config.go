@@ -14,7 +14,8 @@ import (
 )
 
 type Config struct {
-	Version string
+	Version    string
+	TimezoneID string // Add TimezoneID field
 	Options
 }
 
@@ -148,7 +149,7 @@ func defaultConfig() Config {
 			LogLevel:        zerolog.InfoLevel.String(),
 			PingHost:        "google.com",
 			DeferDelete:     true,
-			AppLogLineCount: 1000,
+			AppLogLineCount: 2000,
 		},
 	}
 }
