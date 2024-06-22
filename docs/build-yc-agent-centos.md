@@ -1,3 +1,0 @@
-# Build yCrash agent in CentOS
-
-Coming Soon...
