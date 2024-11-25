@@ -77,6 +77,17 @@ type Options struct {
 	AppLogLineCount uint    `yaml:"appLogLineCount" usage:"Number of last lines from the log file should be uploaded"`
 
 	StoragePath string `yaml:"storagePath" usage:"The storage path to save the captured files"`
+
+	Kubernetes bool `yaml:"kubernetes" usage:"pass true for Kubernetes field"`
+
+	HealthChecks HealthChecks `yaml:"healthChecks"`
+}
+
+type HealthChecks map[string]HealthCheck
+type HealthCheck struct {
+	Endpoint    string `yaml:"endpoint"`
+	HTTPBody    string `yaml:"httpBody"`
+	TimeoutSecs int    `yaml:"timeoutSecs"`
 }
 
 type Command struct {
@@ -164,7 +175,7 @@ func ParseFlags(args []string) error {
 	flagSet.Parse(args[1:])
 
 	defer func() {
-		for len(GlobalConfig.Server) > 2 && strings.HasSuffix(GlobalConfig.Server, "/") {
+		if len(GlobalConfig.Server) > 2 && strings.HasSuffix(GlobalConfig.Server, "/") {
 			GlobalConfig.Server = GlobalConfig.Server[:len(GlobalConfig.Server)-1]
 		}
 	}()
@@ -272,6 +283,9 @@ func registerFlags(flagSetName string) (*flag.FlagSet, map[int]interface{}) {
 			continue
 		case time.Duration:
 			result[i] = flagSet.Duration(name, v, usage)
+			continue
+		case HealthChecks:
+			// Ignore this due to nested structure, we don't support this via CLI for now.
 			continue
 		}
 		switch fieldType.Type.Kind() {

@@ -162,6 +162,11 @@ func GetM3FinEndpoint(timestamp string, timezone string, pids map[int]string) st
 
 	parameters += "&cpuCount=" + strconv.Itoa(runtime.NumCPU())
 
+	/// append pod name
+	if config.GlobalConfig.Kubernetes {
+		parameters += "&pod=" + getPodName()
+	}
+	///
 	return fmt.Sprintf("%s/m3-fin?%s", config.GlobalConfig.Server, parameters)
 }
 
@@ -196,6 +201,10 @@ func (m3 *M3App) captureAndTransmit(pids map[int]string, endpoint string) (err e
 
 			logger.Log("Starting collection of app logs data...")
 			m3.uploadAppLogM3(endpoint, pid, appName, gcPath)
+
+			if healthCheckCfg, ok := config.GlobalConfig.HealthChecks[appName]; ok {
+				uploadHealthCheck(endpoint, appName, healthCheckCfg)
+			}
 		}
 	}
 
@@ -441,8 +450,27 @@ func (m3 *M3App) uploadAppLogM3(endpoint string, pid int, appName string, gcPath
 		result := <-appLogM3Chan
 		logger.Log(
 			`APPLOGS DATA
-Ok (at least one success): %t
+Ok (at least one transmitted): %t
 Resps: %s
+
+--------------------------------
+`, result.Ok, result.Msg)
+	}
+}
+
+func uploadHealthCheck(endpoint, appName string, healthCheckCfg config.HealthCheck) {
+	capHealthCheck := &capture.HealthCheck{
+		AppName: appName,
+		Cfg:     healthCheckCfg,
+	}
+	chanHealthCheck := capture.GoCapture(endpoint, capture.WrapRun(capHealthCheck))
+
+	if chanHealthCheck != nil {
+		result := <-chanHealthCheck
+		logger.Log(
+			`HEALTH CHECK DATA
+Is transmission completed: %t
+Resp: %s
 
 --------------------------------
 `, result.Ok, result.Msg)
@@ -511,4 +539,19 @@ func ParseM3FinResponse(resp []byte) (pids []int, tags []string, timestamps []st
 		}
 	}
 	return
+}
+
+// /
+// / When YC Agent is deployed as a side car, then the hostname is podname
+func getPodName() string {
+	var podName = ""
+	if config.GlobalConfig.Kubernetes {
+		hostname, e := os.Hostname()
+		if e != nil {
+			logger.Log("error while getting hostname%s", e.Error())
+		}
+		podName = hostname
+		logger.Log("Podname: %s", podName)
+	}
+	return podName
 }

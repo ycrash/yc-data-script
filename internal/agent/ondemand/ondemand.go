@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -97,13 +98,15 @@ func FullCapture(pid int, appName string, hd bool, tags string, tsParam string) 
 
 		// A.1 Define yc-server endpoint and parameters
 		{
-			now, _ := common.GetAgentCurrentTime()
+			now, timezone := common.GetAgentCurrentTime()
 			timestamp = now.Format("2006-01-02T15-04-05")
 
 			if tsParam == "" {
 				tsParam = timestamp
 			}
-			parameters = fmt.Sprintf("de=%s&ts=%s", getOutboundIP().String(), tsParam)
+			//parameters = fmt.Sprintf("de=%s&ts=%s", getOutboundIP().String(), tsParam)
+			timezoneBase64 := base64.StdEncoding.EncodeToString([]byte(timezone))
+			parameters = fmt.Sprintf("de=%s&ts=%s&timezoneId=%s", getOutboundIP().String(), tsParam, timezoneBase64)
 			endpoint = fmt.Sprintf("%s/ycrash-receiver?%s", config.GlobalConfig.Server, parameters)
 		}
 
@@ -116,11 +119,12 @@ func FullCapture(pid int, appName string, hd bool, tags string, tsParam string) 
 			}
 
 			{
-				err = os.Mkdir(captureDir, 0777)
-				if err != nil {
-					return
+				if !config.GlobalConfig.M3 {
+					err = os.Mkdir(captureDir, 0777)
+					if err != nil {
+						return
+					}
 				}
-
 				// Cleanup capture dir
 				if config.GlobalConfig.DeferDelete {
 					Wg.Add(1)
@@ -143,9 +147,11 @@ func FullCapture(pid int, appName string, hd bool, tags string, tsParam string) 
 				}
 
 				// Chdir to the capture dir (yc-$timestamp)
-				err = os.Chdir(captureDir)
-				if err != nil {
-					return
+				if !config.GlobalConfig.M3 {
+					err = os.Chdir(captureDir)
+					if err != nil {
+						return
+					}
 				}
 
 				defer func() {
@@ -606,7 +612,7 @@ Resp:
 		result := <-appLogs
 		logger.Log(
 			`APPLOGS DATA
-Ok (at least one success): %t
+Ok (at least one transmitted): %t
 Resps:
 %s
 
