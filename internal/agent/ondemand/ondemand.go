@@ -299,10 +299,8 @@ Ignored errors: %v
 		//                   Capture netstat x2
 		// ------------------------------------------------------------------------------
 		//  Collect the first netstat: date at the top, data, and then a blank line
-		logger.Log("Collecting the first netstat snapshot...")
-		capNetStat = capture.NewNetStat()
+		capNetStat = &capture.NetStat{}
 		netStat = goCapture(endpoint, capture.WrapRun(capNetStat))
-		logger.Log("First netstat snapshot complete.")
 
 		// ------------------------------------------------------------------------------
 		//                   Capture top
@@ -366,7 +364,7 @@ Ignored errors: %v
 	var appLog chan capture.Result
 	if len(config.GlobalConfig.AppLog) > 0 && config.GlobalConfig.AppLogLineCount > 0 {
 		configAppLogs := config.AppLogs{config.AppLog(config.GlobalConfig.AppLog)}
-		appLog = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: configAppLogs, N: config.GlobalConfig.AppLogLineCount}))
+		appLog = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: configAppLogs, LineLimit: config.GlobalConfig.AppLogLineCount}))
 	}
 
 	// ------------------------------------------------------------------------------
@@ -399,11 +397,11 @@ Ignored errors: %v
 			}
 
 			if len(appLogsMatchingAppName) > 0 {
-				appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: appLogsMatchingAppName, N: config.GlobalConfig.AppLogLineCount}))
+				appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: appLogsMatchingAppName, LineLimit: config.GlobalConfig.AppLogLineCount}))
 				useGlobalConfigAppLogs = true
 			}
 		} else {
-			appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: config.GlobalConfig.AppLogs, N: config.GlobalConfig.AppLogLineCount}))
+			appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: config.GlobalConfig.AppLogs, LineLimit: config.GlobalConfig.AppLogLineCount}))
 			useGlobalConfigAppLogs = true
 		}
 	}
@@ -448,7 +446,7 @@ Ignored errors: %v
 			}
 		}
 
-		appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: paths, N: config.GlobalConfig.AppLogLineCount}))
+		appLogs = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: paths, LineLimit: config.GlobalConfig.AppLogLineCount}))
 	}
 
 	// ------------------------------------------------------------------------------
@@ -458,15 +456,6 @@ Ignored errors: %v
 		Pid:      pid,
 		JavaHome: config.GlobalConfig.JavaHomePath,
 	}))
-
-	// ------------------------------------------------------------------------------
-	//                Capture final netstat
-	// ------------------------------------------------------------------------------
-	if capNetStat != nil {
-		logger.Log("Collecting the final netstat snapshot...")
-		capNetStat.Done()
-		logger.Log("Final netstat snapshot complete.")
-	}
 
 	// stop started tasks
 	if capTop != nil {
