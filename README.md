@@ -66,7 +66,7 @@ You can analyze the artifacts captured by yc-data-script either manually or thro
 
 ### Advanced launch modes
 
-You can launch yc-data-script in following [3 different modes](https://docs.ycrash.io/ycrash-agent/launch-modes.html#launch-modes):
+You can launch yc-data-script in following [3 different modes](https://docs.ycrash.io/ycrash-agent/launch-modes/introduction.html):
 
 1. **On-demand Mode:** In this mode you can directly transmit 360-degree artifacts from your server to yCrash server for analysis.
 2. **API Mode:** In this mode you can integrate yc-data-script with your current monitoring tools such as AppDynamics, New Relic, Dynatrace, …
