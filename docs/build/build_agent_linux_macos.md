@@ -9,7 +9,7 @@ This guide outlines the steps to build the yCrash agent in both Linux and macOS 
 
 This method uses an Alpine-based Docker image to set up a clean Go development environment with all required dependencies.
 
-#### Step 1: Create a Dockerfile
+### Step 1: Create a Dockerfile
 
 Create a `Dockerfile.base.alpine` and add the following content:
 
@@ -34,7 +34,7 @@ WORKDIR /opt/workspace/yc-agent
 
 ENTRYPOINT ["/bin/sh"]
 ```
-#### Step 2: Create a Makefile
+### Step 2: Create a Makefile
 To simplify the build process, create a `Makefile` and add the following content:
 
 ```makefile
@@ -61,7 +61,7 @@ shell:
 build:
 	docker exec -it yc-agent-alpine /bin/sh -c "cd cmd/yc && go build -o yc -ldflags='-s -w' -buildvcs=false && mkdir -p ../../bin/ && mv yc ../../bin/"
 ```
-#### Step 3: Build the Agent
+### Step 3: Build the Agent
 To build the agent using the containerized environment, run the following command:
 ```
 sudo make alpine base build
@@ -87,12 +87,13 @@ If you prefer building the agent directly on your local system, ensure the follo
 
 > 📌 **Note**: Package names may vary slightly depending on your Linux distribution or macOS package manager (e.g., Homebrew).
 
-### Build Steps:
-#### Step 1:  Navigate to the cmd/yc directory inside the repository:
+## Build Steps:
+
+### Step 1:  Navigate to the cmd/yc directory inside the repository:
 ```
 cd ../yc-data-script/cmd/yc
 ```
-#### Step 2: Then run the following command to build the agent:
+### Step 2: Then run the following command to build the agent:
 ```
 go build -o yc -ldflags='-s -w' -buildvcs=false && mkdir -p ../../bin/ && mv yc ../../bin/
 ```
