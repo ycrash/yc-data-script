@@ -76,6 +76,6 @@ You can launch yc-data-script in following [3 different modes](https://docs.ycra
 
 Please refer to any one of the following links if you want to build the yc-data-script in that corresponding operating system:
 
-1. Build yc-data-script in [Windows](/docs/Build%20yc%20agent%20in%20Windows.pdf)
-2. Build yc-data-script in [Linux](/docs/build-yc-agent-linux.md)
-3. Build yc-data-script in [MacOS](/docs/build-yc-agent-macos.md)
+1. Build yc-data-script in [Windows](/docs/build/build_agent_windows.md)
+2. Build yc-data-script in [Linux](/docs/build/build_agent_linux_macos.md)
+3. Build yc-data-script in [MacOS](/docs/build/build_agent_linux_macos.md)
