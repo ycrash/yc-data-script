@@ -784,7 +784,27 @@ func GetGCLogFile(pid int) (result string, err error) {
 	command, _ = executils.GC.AddDynamicArg(dynamicArg)
 	output, err = executils.CommandCombinedOutput(command)
 	if err != nil {
-		return
+		logger.Log("GetGCLogFile: err in getting process cmdline: %s, output: %s", err.Error(), string(output))
+		logger.Log("GetGCLogFile: falling back to gopsutil")
+
+		// Try fallback with gopsutil library
+		p, errFallback := ps.NewProcess(int32(pid))
+		if errFallback != nil {
+			logger.Log("GetGCLogFile: fallback gopsutil err in getting process: %s", errFallback.Error())
+			return
+		}
+
+		cmdLineStr, errFallbackCmdline := p.Cmdline()
+		if errFallbackCmdline != nil {
+			logger.Log("GetGCLogFile: fallback gopsutil err in getting process cmdline: %s", errFallbackCmdline.Error())
+			return
+		}
+
+		// Fallback success
+		if cmdLineStr != "" {
+			output = []byte(cmdLineStr)
+			err = nil
+		}
 	}
 
 	if logFile == "" {
@@ -843,6 +863,28 @@ func GetGCLogFile(pid int) (result string, err error) {
 		}
 	}
 
+	//// unni added on 16-05-2025 for fixing garbage collection log detection issue
+	logger.Log("1.what is logFile->%s", logFile)
+	logger.Log("1.what is output->%s", output)
+	if logFile == "" {
+		// Garbage collection log: Attempt 5: -Xlog:gc*=info,gc+heap=debug,gc+ref*=debug,gc+ergo*=trace,gc+age*=trace:file=/opt/workspace/yc-agent/gc.log:utctime
+		re := regexp.MustCompile(`file=([^:]+)`)
+		matches := re.FindSubmatch(output)
+		if len(matches) == 2 {
+			logFile = string(matches[1])
+			logger.Log("gc logFile %s", logFile)
+			// if strings.Contains(logFile, ",") {
+			// 	splitByComma := strings.Split(logFile, ",")
+			// 	// Check if it's in the form of filename,x,y
+			// 	// Take only filename
+			// 	if len(splitByComma) == 3 {
+			// 		logFile = splitByComma[0]
+			// 	}
+			// }
+
+		}
+	}
+	logger.Log("2.what is logFile->%s", logFile)
 	result = strings.TrimSpace(logFile)
 	if result != "" && !filepath.IsAbs(result) {
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
