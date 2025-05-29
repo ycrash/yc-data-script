@@ -1,13 +1,12 @@
 # yc-data-script
+![Go](https://img.shields.io/badge/language-Go-skyblue.svg)
+[![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)](LICENSE)
 
 **yc-360 Script** is a lightweight diagnostic script that captures comprehensive troubleshooting artifacts (like Application logs, GC logs, thread dumps, heap dumps, OS-level metrics) from environments like Linux, Windows, Docker, Kubernetes, and OpenShift.
 
 ![img](/docs/images/360-degree.png)
 
 # yc-360: One Script to Capture 360° Production Artifacts
-
-![Go](https://img.shields.io/badge/language-Go-skyblue.svg)
-[![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)](LICENSE)
 
 ## What is yc-360 script?
 
