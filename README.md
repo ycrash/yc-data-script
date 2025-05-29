@@ -6,11 +6,11 @@
 
 ![img](/docs/images/360-degree.png)
 
-# yc-360: One Script to Capture 360° Production Artifacts
+# yc-360 Script: One Script to Capture 360° Production Artifacts
 
-## What is yc-360 script?
+## What is yc-360 Script?
 
-yc-360 is a simple script that captures 16 different artifacts from your application in a pristine manner, which are highly useful to troubleshoot production problems. Here is the list of artifacts captured by the script:
+**yc-360 script** is a simple script that captures 16 different artifacts from your application in a pristine manner, which are highly useful to troubleshoot production problems. Here is the list of artifacts captured by the script:
 
 | **Artifact**          | **What It Captures**                                                                 |
 |-----------------------|--------------------------------------------------------------------------------------|
@@ -29,19 +29,19 @@ yc-360 is a simple script that captures 16 different artifacts from your applica
 | `vmstat`              | Virtual memory, I/O, and CPU scheduling stats                                        |
 | `iostat`              | Disk I/O performance metrics                                                         |
 | Kernel Parameters     | System tuning configurations (like swappiness, max open files)                       |
-| Extended Data         | Any custom scripts or data you configure yc-360 to collect                           |
+| Extended Data         | Any custom scripts or data you configure yc-360 script to collect                           |
 | Metadata              | Basic system/app metadata (JVM version, hostname, uptime, etc.)                      |
 
 
-## Why you need yc-360 script?
+## Why you need yc-360 Script?
 
-**1. APMs highlight symptoms, but deeper diagnostics need artifacts:** Monitoring tools like APMs are excellent at identifying symptoms such as memory spikes, high CPU usage, or degraded response times. However, when it's time to get to the root cause, you need more than charts and alerts. For example, if memory consumption spikes, you’ll need a heap dump to identify which objects are leaking. If CPU usage increases, a thread dump is required to trace it back to the exact lines of code causing the spike. yc-360 complements your APM by collecting these deeper diagnostic artifacts in a single run—making it much easier and faster to isolate the problem.
+**1. APMs highlight symptoms, but deeper diagnostics need artifacts:** Monitoring tools like APMs are excellent at identifying symptoms such as memory spikes, high CPU usage, or degraded response times. However, when it's time to get to the root cause, you need more than charts and alerts. For example, if memory consumption spikes, you’ll need a heap dump to identify which objects are leaking. If CPU usage increases, a thread dump is required to trace it back to the exact lines of code causing the spike. The yc-360 script complements your APM by collecting these deeper diagnostic artifacts in a single run—making it much easier and faster to isolate the problem.
 
-**2. Customer-premise deployments offer no visibility or access:** In many cases, your application runs on a customer’s infrastructure where you don’t have shell access or real-time visibility. Asking them to send screenshots or partial logs rarely provides enough context to troubleshoot effectively. yc-360 solves this by giving you a simple script that the customer can run themselves. It gathers all the essential artifacts—across JVM, system, and network layers—so you get everything you need to troubleshoot the issue thoroughly, even without direct access.
+**2. Customer-premise deployments offer no visibility or access:** In many cases, your application runs on a customer’s infrastructure where you don’t have shell access or real-time visibility. Asking them to send screenshots or partial logs rarely provides enough context to troubleshoot effectively. The yc-360 script solves this by giving you a simple script that the customer can run themselves. It gathers all the essential artifacts—across JVM, system, and network layers—so you get everything you need to troubleshoot the issue thoroughly, even without direct access.
 
-**3. Issues that are hard to reproduce:** Some production issues are intermittent—CPU spikes that last a few seconds, memory usage climbing slowly over time, or a backend API that times out randomly. These problems often disappear by the time someone logs in to debug. yc-360 helps capture the system’s state right when the issue occurs, providing a snapshot that can be analyzed offline even after the system recovers.
+**3. Issues that are hard to reproduce:** Some production issues are intermittent—CPU spikes that last a few seconds, memory usage climbing slowly over time, or a backend API that times out randomly. These problems often disappear by the time someone logs in to debug. The yc-360 script helps capture the system’s state right when the issue occurs, providing a snapshot that can be analyzed offline even after the system recovers.
 
-**4. Coordinating across distributed teams:** In global teams where developers, operations, and support work in different time zones or regions, coordinating a live troubleshooting session can cause delays. yc-360 allows on-site or first-level teams to run the script and share the artifacts asynchronously, enabling faster hand-offs and eliminating timezone blockers during urgent incidents.
+**4. Coordinating across distributed teams:** In global teams where developers, operations, and support work in different time zones or regions, coordinating a live troubleshooting session can cause delays. The yc-360 script allows on-site or first-level teams to run the script and share the artifacts asynchronously, enabling faster hand-offs and eliminating timezone blockers during urgent incidents.
 
 ## Getting Started - How to run the yc-360 Script?
 
@@ -103,60 +103,60 @@ Please refer to any one of the following links if you want to build the yc-data-
 ## FAQ
 
 <details>
-  <summary><strong>1. What if I want to capture additional data that yc-360 doesn’t collect by default?</strong></summary>
+  <summary><strong>1. What if I want to capture additional data that yc-360 script doesn’t collect by default?</strong></summary>
   
-You can extend the functionality using the `-extendedDataScript` argument. This lets you specify a custom script that yc-360 will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
+You can extend the functionality using the `-extendedDataScript` argument. This lets you specify a custom script that yc-360 script will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
 </details>
 
 <details>
-  <summary><strong>2. What is the overhead of running yc-360?</strong></summary>
+  <summary><strong>2. What is the overhead of running yc-360 script?</strong></summary>
 
 The `yc-360` script is designed to be lightweight and non-intrusive, ensuring minimal impact on your application's performance. It primarily reads existing system and application data without altering configurations or consuming significant resources. In performance tests conducted on a Linux machine running a Java Spring Boot application, the script demonstrated:
 
 - **CPU Usage:** Averaging around 0.05%, with occasional spikes up to 3% during data collection.
 - **Memory Usage:** Consistently between 0.1% and 0.2%.
 
-These metrics indicate that `yc-360` can safely run in production environments without causing noticeable overhead. For detailed insights, refer to the [yCrash Agent Overhead Performance blog post](https://blog.ycrash.io/ycrash-agent-overhead-performance/).
+These metrics indicate that `yc-360` script can safely run in production environments without causing noticeable overhead. For detailed insights, refer to the [yCrash Agent Overhead Performance blog post](https://blog.ycrash.io/ycrash-agent-overhead-performance/).
 </details>
 
 <details>
-  <summary><strong>3. Is it safe to run yc-360 in production environments?</strong></summary>
+  <summary><strong>3. Is it safe to run yc-360 script in production environments?</strong></summary>
 
-Absolutely. yc-360 is a non-intrusive, read-only script. It doesn’t modify any application or system configuration. It only reads and collects diagnostics and is safe to run even in high-availability production environments.
+Absolutely. The yc-360 script is a non-intrusive, read-only script. It doesn’t modify any application or system configuration. It only reads and collects diagnostics and is safe to run even in high-availability production environments.
 </details>
 
 <details>
-  <summary><strong>4. Can yc-360 be executed in containerized environments like Docker, Kubernetes, or OpenShift?</strong></summary>
+  <summary><strong>4. Can yc-360 script be executed in containerized environments like Docker, Kubernetes, or OpenShift?</strong></summary>
 
-Yes. yc-360 supports all major environments including bare-metal, virtual machines, Docker containers, Kubernetes pods, and OpenShift clusters. You can run it directly inside containers or as part of sidecar/init containers for collection.
+Yes. The yc-360 script supports all major environments including bare-metal, virtual machines, Docker containers, Kubernetes pods, and OpenShift clusters. You can run it directly inside containers or as part of sidecar/init containers for collection.
 </details>
 
 <details>
   <summary><strong>5. What if I don’t have direct access to the production environment?</strong></summary>
 
-That’s exactly what yc-360 is built for. You can send the script to your customer or operations team and ask them to run it on your behalf. It generates a ZIP file with all the artifacts, which they can send back to you for analysis.
+That’s exactly what yc-360 script is built for. You can send the script to your customer or operations team and ask them to run it on your behalf. It generates a ZIP file with all the artifacts, which they can send back to you for analysis.
 </details>
 
 <details>
   <summary><strong>6. How much time does it take to run?</strong></summary>
 
-In most environments, yc-360 completes execution in under 30 seconds. However, collecting heap dumps may take longer depending on the heap size and system performance.
+In most environments, yc-360 script completes execution in under 30 seconds. However, collecting heap dumps may take longer depending on the heap size and system performance.
 </details>
 
 <details>
-  <summary><strong>7. What kind of issues can yc-360 help troubleshoot?</strong></summary>
+  <summary><strong>7. What kind of issues can yc-360 script help troubleshoot?</strong></summary>
 
-yc-360 is effective in diagnosing memory leaks, GC pauses, CPU spikes, thread contention, application freezes, disk pressure, network latency, backend slowness, and more. It provides a 360° snapshot of your application and environment at the time of the issue.
+The yc-360 script is effective in diagnosing memory leaks, GC pauses, CPU spikes, thread contention, application freezes, disk pressure, network latency, backend slowness, and more. It provides a 360° snapshot of your application and environment at the time of the issue.
 </details>
 
 <details>
-  <summary><strong>8. Where can I analyze the artifacts generated by yc-360?</strong></summary>
+  <summary><strong>8. Where can I analyze the artifacts generated by yc-360 script?</strong></summary>
 
 You can use tools like [GCeasy.io](https://gceasy.io) (for GC logs), [fastThread.io](https://fastthread.io) (for thread dumps), [HeapHero.io](https://heaphero.io). [Eclipse MAT](https://eclipse.dev/mat/) (for heap dumps), and [yCrash.io](https://ycrash.io) for unified 360° analysis.
 </details>
 
 <details>
-  <summary><strong>9. How do I schedule yc-360 to run periodically?</strong></summary>
+  <summary><strong>9. How do I schedule yc-360 script to run periodically?</strong></summary>
 
 You can schedule the script using cron (Linux/macOS), Task Scheduler (Windows), or Kubernetes CronJobs (in container environments). Just ensure the appropriate file write permissions are set in the output directory.
 </details>
@@ -164,11 +164,11 @@ You can schedule the script using cron (Linux/macOS), Task Scheduler (Windows), 
 <details>
   <summary><strong>10. Is yc-360 script customizable?</strong></summary>
 
-Yes. yc-360 is designed as a modular shell script. You can clone the repository and customize individual collection commands or add/remove specific artifacts based on your organization’s requirements.
+Yes. The yc-360 script is designed as a modular shell script. You can clone the repository and customize individual collection commands or add/remove specific artifacts based on your organization’s requirements.
 </details>
 
 <details>
-  <summary><strong>11. Is support available for yc-360?</strong></summary>
+  <summary><strong>11. Is support available for yc-360 script?</strong></summary>
 
 For community support, please use the [GitHub Issues page](https://github.com/ycrash/yc-data-script/issues). For enterprise-grade support and integration assistance, visit [yCrash.io](https://ycrash.io/).
 </details>
