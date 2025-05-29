@@ -49,11 +49,9 @@
 2. Unzip the downloaded ```yc-agent-latest.zip``` file. (Say you are unzipping in '/opt/workspace/yc-agent-latest' folder)
 3. In the unzipped folder you will find yc-data-script by operating system:
 
-a) ```linux/yc``` - If you are running on Unix/Linux, then use this script.
-
-b) ```windows/yc.exe``` - If you are running on Windows, then use this script.
-
-c) ```mac/yc``` - If you are running on MAC, then use this script.
+    - `linux/yc` - If you are running on Unix/Linux, then use this script.
+    - `windows/yc.exe` - If you are running on Windows, then use this script.
+    - `mac/yc` - If you are running on MAC, then use this script.
 
 4. You can execute the yc script by issuing following command:
 ```
