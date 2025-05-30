@@ -1,17 +1,12 @@
-# yc-data-script
-![Go](https://img.shields.io/badge/language-Go-skyblue.svg)
+# yc-360 Script: One Script to Capture 360° Production Artifacts
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/yc--360%20Script-Documentation-green)](https://docs.ycrash.io/)
 
-**yc-360 Script** is a lightweight diagnostic script that captures comprehensive troubleshooting artifacts (like Application logs, GC logs, thread dumps, heap dumps, OS-level metrics) from environments like Linux, Windows, Docker, Kubernetes, and OpenShift.
-
 ![img](/docs/images/360-degree.png)
-
-# yc-360 Script: One Script to Capture 360° Production Artifacts
 
 ## What is yc-360 Script?
 
-**yc-360 script** is a simple script that captures 16 different artifacts from your application in a pristine manner, which are highly useful to troubleshoot production problems. Here is the list of artifacts captured by the script:
+**yc-360 script** is a simple script that captures 16 different artifacts from your application in a [pristine manner](https://test.docs.ycrash.io/ycrash-agent/features/pristine-capture.html), which are highly useful to troubleshoot production problems. Here is the list of artifacts captured by the script:
 
 | **Artifact**          | **What It Captures**                                                                 |
 |-----------------------|--------------------------------------------------------------------------------------|
@@ -36,68 +31,27 @@
 
 ## Why you need yc-360 Script?
 
-**1. APMs highlight symptoms, but deeper diagnostics need artifacts:** Monitoring tools like APMs are excellent at identifying symptoms such as memory spikes, high CPU usage, or degraded response times. However, when it's time to get to the root cause, you need more than charts and alerts. For example, if memory consumption spikes, you’ll need a heap dump to identify which objects are leaking. If CPU usage increases, a thread dump is required to trace it back to the exact lines of code causing the spike. The yc-360 script complements your APM by collecting these deeper diagnostic artifacts in a single run—making it much easier and faster to isolate the problem.
+**1. Capture Deeper 360° Artifacts for Root Cause Analysis:** Monitoring tools like APMs are excellent at reporting problems such as memory spikes, high CPU usage, or degraded response times. However, when it's time to get to the root cause, you need more than charts and alerts. For example, if memory consumption spikes, you will need a heap dump to identify which objects are leaking. If CPU usage increases, a thread dump is required to trace it back to the exact lines of code causing the spike. The yc-360 script complements your APM by collecting these deeper diagnostic artifacts in a single run—making it much easier and faster to isolate the problem.
 
-**2. Customer-premise deployments offer no visibility or access:** In many cases, your application runs on a customer’s infrastructure where you don’t have shell access or real-time visibility. Asking them to send screenshots or partial logs rarely provides enough context to troubleshoot effectively. The yc-360 script solves this by giving you a simple script that the customer can run themselves. It gathers all the essential artifacts—across JVM, system, and network layers—so you get everything you need to troubleshoot the issue thoroughly, even without direct access.
+**2. Accelerate Troubleshooting in Customer On-Prem Environments:** In many cases, our application runs on a customer’s infrastructure where you don’t have shell access or real-time visibility. Asking them to send screenshots or partial logs rarely provides enough context to troubleshoot effectively. The yc-360 script solves this by giving you a simple script that the customer can run themselves. It gathers all the essential artifacts across Application, JVM, system, and network layers - so you get everything you need to troubleshoot the issue thoroughly, even without direct access.
 
-**3. Issues that are hard to reproduce:** Some production issues are intermittent—CPU spikes that last a few seconds, memory usage climbing slowly over time, or a backend API that times out randomly. These problems often disappear by the time someone logs in to debug. The yc-360 script helps capture the system’s state right when the issue occurs, providing a snapshot that can be analyzed offline even after the system recovers.
+**3. Forecast Production Incidents During Pre-Release Testing:** Before every release, we run performance tests to validate CPU, memory, and response times. But these Macro-Metrics alone don’t reveal deeper risks. yc-360 script enables you to analyze Micro-Metrics like GC throughput, object allocation rate, socket usage, and thread pool behaviors. These overlooked Micro-metrics, signals early signs of instability, giving you a chance to identify the performance issues before they hit production.
 
-**4. Coordinating across distributed teams:** In global teams where developers, operations, and support work in different time zones or regions, coordinating a live troubleshooting session can cause delays. The yc-360 script allows on-site or first-level teams to run the script and share the artifacts asynchronously, enabling faster hand-offs and eliminating timezone blockers during urgent incidents.
+## [Getting Started - How to run the yc-360 Script?](https://test.docs.ycrash.io/ycrash-agent/launch-modes/only-capture-mode.html)
 
-## Getting Started - How to run the yc-360 Script?
+## How to Analyze the Artifacts Generated by the yc-360-script?
 
-1. Download the latest yc-data-script from [this](https://tier1app.com/dist/ycrash/yc-agent-latest.zip) location
-2. Unzip the downloaded ```yc-agent-latest.zip``` file. (Say you are unzipping in '/opt/workspace/yc-agent-latest' folder)
-3. In the unzipped folder you will find yc-data-script by operating system:
+You can analyze the artifacts captured by yc-360-script either manually or through [yCrash server](https://ycrash.io/). yCrash server analyzes all the captured data and generates a root cause analysis report instantly. You can use the [Bundle upload](https://docs.ycrash.io/ycrash-features/bundle-upload.html#step-1-go-to-upload-incident-form) feature in the yCrash server to analyze the captured 360-degree data. 
 
-    - `linux/yc` - If you are running on Unix/Linux, then use this script.
-    - `windows/yc.exe` - If you are running on Windows, then use this script.
-    - `mac/yc` - If you are running on MAC, then use this script.
+## How to Build the yc-360-script?
 
-4. You can execute the yc script by issuing following command:
-```
-./yc -j {JAVA_HOME} -onlyCapture -p {PID} -hd
-```
-Where,
+Please refer to any one of the following links if you want to build the yc-360-script in that corresponding operating system:
 
-- **JAVA_HOME** is the home directory where JDK is installed
-- **PID** is the troubled target process ID. Instead of process ID, you can also pass **Unique Token** that will uniquely identify the process. [What is **Unique Token**?](https://test.docs.ycrash.io/ycrash-agent/faq/what-is-unique-token-in-process.html)
-
-### Example:
-
-```
-./yc -j /usr/java/jdk1.8.0_141 -onlyCapture -p 15326 -hd
-```
-When you pass the above arguments, yc-data-script will capture all the application level and system level artifacts/logs from the server from the target JVM & host for analysis. Captured artifacts will be compressed into a zip file and stored in the current directory where the above command was executed. The zip file will have the name in the format: 'yc-YYYY-MM-DDTHH-mm-ss.zip'. 
-    
-**Example:** 'yc-2021-03-06T14-02-42.zip'.
-
-**WARNING:** In Linux/Unix, yc-360 script should be run with same user permissions as your target java application user permission. Say your target java application is running with user permission 'tomcat-user', then yc-360 script should also be run with 'tomcat-user' permission.
-
-**IMPORTANT TIP:** In order to detect memory related problems, you need to enable GC logging on your application. You can enable GC logging on your application, by passing the arguments [mentioned here](https://test.docs.ycrash.io/ycrash-agent/features/how-to-enable-gc-logs.html).
+1. Build yc-360-script in [Windows](/docs/build/build_agent_windows.md)
+2. Build yc-360-script in [Linux](/docs/build/build_agent_linux.md)
+3. Build yc-360-script in [MacOS](/docs/build/build_agent_macos.md)
 
 **HELP:** If you encounter any issues during setup, contact our support team at [support@tier1app.com](support@tier1app.com). To see all yc-360 script arguments, please [refer here](https://test.docs.ycrash.io/ycrash-agent/all-yc-360-script-arguments.html).
-
-### Launch Modes
-
-You can launch yc-data-script in following [4 different modes](https://test.docs.ycrash.io/ycrash-agent/launch-modes/introduction.html):
-
-1. [**On-demand Mode:**](https://test.docs.ycrash.io/ycrash-agent/launch-modes/on-demand-mode) In this mode you can directly transmit 360-degree artifacts from your server to yCrash server for analysis.
-2. [**Only-capture Mode:**](https://test.docs.ycrash.io/ycrash-agent/launch-modes/only-capture-mode) In this mode, the yc-360 script captures 360-degree artifacts from your server and stores them on your disk instead of transmitting them to yCrash server.
-3. [**API Mode:**](https://test.docs.ycrash.io/ycrash-agent/launch-modes/api-mode) In this mode you can integrate yc-data-script with your current monitoring tools such as AppDynamics, New Relic, Dynatrace, …
-4. [**M3 (Micro-metrics Monitoring) Mode:**](https://test.docs.ycrash.io/ycrash-agent/launch-modes/m3-mode) In this mode, yc-data-script proactively detect performance outages much earlier before it surfaces
-
-## How to Analyze the Artifacts Generated by the yc-data-script?
-
-You can analyze the artifacts captured by yc-data-script either manually or through [yCrash server](https://ycrash.io/). yCrash server analyzes all the captured data and generates a root cause analysis report instantly. You can use the [Bundle upload](https://docs.ycrash.io/ycrash-features/bundle-upload.html#step-1-go-to-upload-incident-form) feature in the yCrash server to analyze the captured 360-degree data. 
-
-## How to Build the yc-data-script?
-
-Please refer to any one of the following links if you want to build the yc-data-script in that corresponding operating system:
-
-1. Build yc-data-script in [Windows](/docs/build/build_agent_windows.md)
-2. Build yc-data-script in [Linux](/docs/build/build_agent_linux.md)
-3. Build yc-data-script in [MacOS](/docs/build/build_agent_macos.md)
 
 ## FAQ
 
