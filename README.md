@@ -1,6 +1,6 @@
 # yc-360 Script: One Script to Capture 360° Production Artifacts
 [![License](https://img.shields.io/badge/license-Apache%202.0-orange.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/yc--360%20Script-Documentation-green)](https://docs.ycrash.io/)
+[![Docs](https://img.shields.io/badge/yc--360%20Script-Documentation-green)](https://test.docs.ycrash.io/ycrash-agent/launch-modes/only-capture-mode.html)
 
 ![img](/docs/images/360-degree.png)
 
@@ -50,8 +50,6 @@ Please refer to any one of the following links if you want to build the yc-360-s
 1. Build yc-360-script in [Windows](/docs/build/build_agent_windows.md)
 2. Build yc-360-script in [Linux](/docs/build/build_agent_linux.md)
 3. Build yc-360-script in [MacOS](/docs/build/build_agent_macos.md)
-
-**HELP:** If you encounter any issues during setup, contact our support team at [support@tier1app.com](support@tier1app.com). To see all yc-360 script arguments, please [refer here](https://test.docs.ycrash.io/ycrash-agent/all-yc-360-script-arguments.html).
 
 ## FAQ
 
