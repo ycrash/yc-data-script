@@ -91,8 +91,8 @@ You should see the installed GCC version:
 ![img](/docs/images/gcc-version.png)
 
 ### Step 9: Build yc-360 Script
-Once everything is set up, navigate to the yc-360 script source directory  `yc-data-script/cmd/yc` and run:
+Once everything is set up, navigate to the yc-360 script source directory  `yc-360-script/cmd/yc` and run:
 ```
 go build
 ```
-This will generate a final executable in `yc-data-script/bin/` directory.
+This will generate a final executable in `yc-360-script/bin/` directory.
