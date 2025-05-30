@@ -352,9 +352,10 @@ Ignored errors: %v
 	//   				Capture thread dumps
 	// ------------------------------------------------------------------------------
 	capThreadDump := &capture.ThreadDump{
-		Pid:      pid,
-		TdPath:   tdPath,
-		JavaHome: config.GlobalConfig.JavaHomePath,
+		Pid:               pid,
+		TdPath:            tdPath,
+		JavaHome:          config.GlobalConfig.JavaHomePath,
+		TdCaptureDuration: config.GlobalConfig.TDCaptureDuration,
 	}
 	threadDump = goCapture(endpoint, capture.WrapRun(capThreadDump))
 
@@ -362,7 +363,7 @@ Ignored errors: %v
 	//   				Capture legacy app log
 	// ------------------------------------------------------------------------------
 	var appLog chan capture.Result
-	if len(config.GlobalConfig.AppLog) > 0 && config.GlobalConfig.AppLogLineCount > 0 {
+	if len(config.GlobalConfig.AppLog) > 0 && config.GlobalConfig.AppLogLineCount != 0 {
 		configAppLogs := config.AppLogs{config.AppLog(config.GlobalConfig.AppLog)}
 		appLog = goCapture(endpoint, capture.WrapRun(&capture.AppLog{Paths: configAppLogs, LineLimit: config.GlobalConfig.AppLogLineCount}))
 	}
@@ -372,7 +373,7 @@ Ignored errors: %v
 	// ------------------------------------------------------------------------------
 	var appLogs chan capture.Result
 	useGlobalConfigAppLogs := false
-	if len(config.GlobalConfig.AppLogs) > 0 && config.GlobalConfig.AppLogLineCount > 0 {
+	if len(config.GlobalConfig.AppLogs) > 0 && config.GlobalConfig.AppLogLineCount != 0 {
 
 		appLogsContainDollarSign := false
 		for _, configAppLog := range config.GlobalConfig.AppLogs {
@@ -456,6 +457,14 @@ Ignored errors: %v
 		Pid:      pid,
 		JavaHome: config.GlobalConfig.JavaHomePath,
 	}))
+
+	// ------------------------------------------------------------------------------
+	//   				Capture heap dump
+	// ------------------------------------------------------------------------------
+	heapEp := fmt.Sprintf("%s/yc-receiver-heap?%s", config.GlobalConfig.Server, parameters)
+	capHeapDump := capture.NewHeapDump(config.GlobalConfig.JavaHomePath, pid, hdPath, hd)
+	capHeapDump.SetEndpoint(heapEp)
+	heapDump := goCapture(heapEp, capture.WrapRun(capHeapDump))
 
 	// stop started tasks
 	if capTop != nil {
@@ -673,21 +682,17 @@ Resp: %s
 	// -------------------------------
 	//     Transmit Heap dump result
 	// -------------------------------
-	ep := fmt.Sprintf("%s/yc-receiver-heap?%s", config.GlobalConfig.Server, parameters)
-	capHeapDump := capture.NewHeapDump(config.GlobalConfig.JavaHomePath, pid, hdPath, hd)
-	capHeapDump.SetEndpoint(ep)
-	hdResult, err := capHeapDump.Run()
-	if err != nil {
-		hdResult.Msg = fmt.Sprintf("capture heap dump failed: %s", err.Error())
-		err = nil
-	}
-	logger.Log(
-		`HEAP DUMP DATA
+	if heapDump != nil {
+		logger.Log("Reading result from heapDump channel")
+		result := <-heapDump
+		logger.Log(
+			`HEAP DUMP DATA
 Is transmission completed: %t
 Resp: %s
 
 --------------------------------
-`, hdResult.Ok, hdResult.Msg)
+`, result.Ok, result.Msg)
+	}
 
 	// ------------------------------------------------------------------------------
 	//  				Execute custom commands
@@ -863,28 +868,6 @@ func GetGCLogFile(pid int) (result string, err error) {
 		}
 	}
 
-	//// unni added on 16-05-2025 for fixing garbage collection log detection issue
-	logger.Log("1.what is logFile->%s", logFile)
-	logger.Log("1.what is output->%s", output)
-	if logFile == "" {
-		// Garbage collection log: Attempt 5: -Xlog:gc*=info,gc+heap=debug,gc+ref*=debug,gc+ergo*=trace,gc+age*=trace:file=/opt/workspace/yc-agent/gc.log:utctime
-		re := regexp.MustCompile(`file=([^:]+)`)
-		matches := re.FindSubmatch(output)
-		if len(matches) == 2 {
-			logFile = string(matches[1])
-			logger.Log("gc logFile %s", logFile)
-			// if strings.Contains(logFile, ",") {
-			// 	splitByComma := strings.Split(logFile, ",")
-			// 	// Check if it's in the form of filename,x,y
-			// 	// Take only filename
-			// 	if len(splitByComma) == 3 {
-			// 		logFile = splitByComma[0]
-			// 	}
-			// }
-
-		}
-	}
-	logger.Log("2.what is logFile->%s", logFile)
 	result = strings.TrimSpace(logFile)
 	if result != "" && !filepath.IsAbs(result) {
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {

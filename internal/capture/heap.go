@@ -21,6 +21,25 @@ import (
 	"yc-agent/internal/logger"
 )
 
+// Taken from yc-server
+var compressedHeapExtensions = []string{
+	"zip",
+	"gz",
+	"pigz",
+	"7z",
+	"xz",
+	"z",
+	"lzma",
+	"deflate",
+	"sz",
+	"lz4",
+	"zstd",
+	"bz2",
+	"tgz",
+	"tar",
+	"tar.gz",
+}
+
 const hdOut = "heap_dump.out"
 const hdZip = "heap_dump.zip"
 
@@ -47,14 +66,33 @@ func NewHeapDump(javaHome string, pid int, hdPath string, dump bool) *HeapDump {
 func (t *HeapDump) Run() (Result, error) {
 	var hd *os.File
 	var err error
+	var isCompressed bool
+	var contentEncoding string
 
 	// Try pre-captured heap dump first
 	if len(t.hdPath) > 0 {
+		isCompressed, contentEncoding = isCompressedHeapFile(t.hdPath)
+		if isCompressed {
+			logger.Log("detected pre-compressed heap dump file: %s with encoding: %s", t.hdPath, contentEncoding)
+		}
+
 		hd, err = t.getPreCapturedDumpFile()
+		if err != nil {
+			return Result{
+				Msg: fmt.Sprintf("capture heap dump failed: %s", err.Error()),
+				Ok:  false,
+			}, nil
+		}
 	} else if t.Pid > 0 && t.dump {
 		var actualDumpPath string
 		// Then try capturing a new heap dump
 		hd, actualDumpPath, err = t.captureDumpFile()
+		if err != nil {
+			return Result{
+				Msg: fmt.Sprintf("capture heap dump failed: %s", err.Error()),
+				Ok:  false,
+			}, nil
+		}
 
 		// Cleanup the actual dump file after we're done with it
 		if actualDumpPath != "" {
@@ -68,37 +106,54 @@ func (t *HeapDump) Run() (Result, error) {
 	}
 
 	if hd == nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = nil
-		}
 		return Result{Msg: "skipped heap dump"}, nil
 	}
 
 	defer func() {
 		err := hd.Close()
-		if err != nil {
+		if err != nil && !errors.Is(err, os.ErrClosed) {
 			logger.Log("failed to close hd file %s cause err: %s", hdOut, err.Error())
 		}
-		err = os.Remove(hdOut)
-		if err != nil {
-			logger.Log("failed to rm hd file %s cause err: %s", hdOut, err.Error())
-		}
 	}()
 
-	logger.Log("captured heap dump data, zipping...")
+	var fileToUpload *os.File
+	var uploadContentEncoding string
 
-	zipfile, err := t.CreateZipFile(hd)
-	if err != nil {
-		return Result{Msg: "skipped heap dump"}, err
+	if isCompressed {
+		// If the file is already compressed, use it directly without re-compressing
+		logger.Log("file is already compressed, skipping compression step")
+		fileToUpload = hd
+		uploadContentEncoding = contentEncoding
+	} else {
+		// For uncompressed files, compress them
+		logger.Log("captured heap dump data, zipping...")
+
+		zipfile, err := t.CreateZipFile(hd)
+		if err != nil {
+			return Result{
+				Msg: fmt.Sprintf("capture heap dump failed: %s", err.Error()),
+				Ok:  false,
+			}, nil
+		}
+
+		defer func() {
+			if err := zipfile.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
+				logger.Debug().Err(err).Msg("failed to close zip file")
+			}
+		}()
+
+		defer func() {
+			err = os.Remove(hdOut)
+			if err != nil {
+				logger.Log("failed to rm hd file %s cause err: %s", hdOut, err.Error())
+			}
+		}()
+
+		fileToUpload = zipfile
+		uploadContentEncoding = "zip"
 	}
 
-	defer func() {
-		if err := zipfile.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
-			logger.Debug().Err(err).Msg("failed to close zip file")
-		}
-	}()
-
-	result := t.UploadCapturedFile(zipfile)
+	result := t.UploadCapturedFile(fileToUpload, uploadContentEncoding)
 	return result, nil
 }
 
@@ -213,13 +268,26 @@ func (t *HeapDump) CreateZipFile(hd *os.File) (*os.File, error) {
 	return zipfile, nil
 }
 
-func (t *HeapDump) UploadCapturedFile(file *os.File) Result {
-	msg, ok := PostData(t.Endpoint(), "hd&Content-Encoding=zip", file)
+func (t *HeapDump) UploadCapturedFile(file *os.File, contentEncoding string) Result {
+	msg, ok := PostData(t.Endpoint(), fmt.Sprintf("hd&Content-Encoding=%s", contentEncoding), file)
 
 	return Result{
 		Msg: msg,
 		Ok:  ok,
 	}
+}
+
+// isCompressedHeapFile checks if the given file is a compressed heap dump file
+// and returns the extension as the MIME type if it is.
+func isCompressedHeapFile(filePath string) (bool, string) {
+	ext := strings.TrimPrefix(filepath.Ext(filePath), ".")
+
+	for _, compressedExt := range compressedHeapExtensions {
+		if ext == compressedExt {
+			return true, ext
+		}
+	}
+	return false, ext
 }
 
 // heapDump runs the JDK tool (jcmd, jattach, etc) to capture the heap dump to the requested file.
