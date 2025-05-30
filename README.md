@@ -56,7 +56,7 @@ Please refer to any one of the following links if you want to build the yc-360-s
 <details>
   <summary><strong>1. What if I Want to Capture Additional Data that yc-360 Script Doesn’t Collect by Default?</strong></summary>
   
-You can extend the functionality using the `-extendedDataScript` argument. This lets you specify a custom script that yc-360 script will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
+You can extend the functionality using the `-edScript` argument. This lets you specify a custom script that yc-360 script will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
 </details>
 
 <details>
