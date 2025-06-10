@@ -61,18 +61,18 @@ Please refer to any one of the following links if you want to build the yc-360-s
 <details>
   <summary><strong>1. What if I Want to Capture Additional Data that yc-360 Script Doesn’t Collect by Default?</strong></summary>
   
-You can extend the functionality using the <a href="https://test.docs.ycrash.io/ycrash-agent/features/extended-data.html" target="_blank" rel="noopener noreferrer">`-edScript` argument</a>. This lets you specify a custom script that yc-360 script will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
+You can extend the functionality using the [`-edScript` argument](https://test.docs.ycrash.io/ycrash-agent/features/extended-data.html). This lets you specify a custom script that yc-360 script will execute as the final step, allowing you to capture additional logs, metrics, or custom files specific to your environment.
 </details>
 
 <details>
-  <summary><strong>What is the Overhead of Running yc-360 Script?</strong></summary>
+  <summary><strong>2. What is the Overhead of Running yc-360 Script?</strong></summary>
 
 The yc-360 script is designed to be lightweight and non-intrusive, ensuring minimal impact on your application's performance. It primarily reads existing system and application data without altering configurations or consuming significant resources. In performance tests conducted on a Linux machine running a Java Spring Boot application, the script demonstrated:
 
 - **CPU Usage:** Averaging around 0.05%, with occasional spikes up to 3% during data collection.
 - **Memory Usage:** Consistently between 0.1% and 0.2%.
 
-These metrics indicate that yc-360 script can safely run in production environments without causing noticeable overhead. For detailed insights, refer to the <a href="https://blog.ycrash.io/ycrash-agent-overhead-performance/" target="_blank" rel="noopener noreferrer">yc-360 Script Overhead Performance</a> blog post.
+These metrics indicate that yc-360 script can safely run in production environments without causing noticeable overhead. For detailed insights, refer to the [yc-360 Script Overhead Performance](https://blog.ycrash.io/ycrash-agent-overhead-performance/) blog post.
 </details>
 
 <details>
@@ -84,7 +84,7 @@ Absolutely. The yc-360 script is a non-intrusive, read-only script. It doesn’t
 <details>
   <summary><strong>4. Can yc-360 Script be executed in containerized environments like Docker, Kubernetes, or OpenShift?</strong></summary>
 
-Yes, yc-360 script is designed to work seamlessly across all major environments — including bare-metal servers, virtual machines, Docker containers, Kubernetes, and OpenShift. You can execute the script directly inside your containers or use it as part of a sidecar or init container to collect diagnostic data. For detailed guidance on each supported environments, visit <a href="https://test.docs.ycrash.io/ycrash-agent/environment/introduction.html" target="_blank" rel="noopener noreferrer">https://test.docs.ycrash.io/ycrash-agent/environment/introduction.html</a>
+Yes, yc-360 script is designed to work seamlessly across all major environments — including bare-metal servers, virtual machines, Docker containers, Kubernetes, and OpenShift. You can execute the script directly inside your containers or use it as part of a sidecar or init container to collect diagnostic data. For detailed guidance on each supported environments, visit [https://test.docs.ycrash.io/ycrash-agent/environment/introduction.html](https://test.docs.ycrash.io/ycrash-agent/environment/introduction.html)
 </details>
 
 <details>
@@ -110,10 +110,10 @@ The yc-360 script is effective in diagnosing memory leaks, GC pauses, CPU spikes
 
 You have two options:
 
-- **Manual Analysis**: You can analyze individual artifacts using specialized tools like <a href="https://gceasy.io" target="_blank" rel="noopener noreferrer">gceasy.io</a> for GC logs, <a href="https://fastthread.io" target="_blank" rel="noopener noreferrer">fastThread.io</a> for thread dumps, <a href="https://heaphero.io" target="_blank" rel="noopener noreferrer">heaphero.io</a> for heap dumps, or Eclipse MAT.
+- **Manual Analysis**: You can analyze individual artifacts using specialized tools like [gceasy.io](https://gceasy.io) for GC logs, [fastThread.io](https://fastthread.io) for thread dumps, [heaphero.io](https://heaphero.io) for heap dumps, or Eclipse MAT.
 
 - **Automated Unified Analysis**: You can upload the entire artifact bundle to yCrash.io using the Bundle Upload feature for a comprehensive 360° root cause analysis.
-For more details, refer to the <a href="https://docs.ycrash.io/ycrash-features/bundle-upload.html" target="_blank" rel="noopener noreferrer">Bundle Upload</a> documentation.
+For more details, refer to the [Bundle Upload](https://docs.ycrash.io/ycrash-features/bundle-upload.html) documentation.
 </details>
 
 <details>
