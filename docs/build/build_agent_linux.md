@@ -1,6 +1,6 @@
-﻿# Building the yc-360 Script on Linux
+﻿# Building the yCrash Agent on Linux
 
-This guide outlines the steps to build the yc-360 script in Linux environment. You have two options for building the yc-360 script:
+This guide outlines the steps to build the yCrash agent in Linux environment. You have two options for building the agent:
 
 1) Build via Dockerized Environment (Recommended)  
 2) Build on Bare Metal
@@ -30,7 +30,7 @@ RUN apk add --no-cache \
 
 ENV PATH=${PATH}:/usr/local/go/bin
 
-WORKDIR /opt/workspace/yc-360-script
+WORKDIR /opt/workspace/yc-agent
 
 ENTRYPOINT ["/bin/sh"]
 ```
@@ -52,7 +52,7 @@ base: alpine
 	docker rm -f yc-agent-alpine || true
 	docker run --init -d -ti --rm \
 		--name yc-agent-alpine \
-		-v $(CWD):/opt/workspace/yc-360script \
+		-v $(CWD):/opt/workspace/yc-agent \
 		yc-agent-base:alpine
 
 shell:
@@ -61,17 +61,17 @@ shell:
 build:
 	docker exec -it yc-agent-alpine /bin/sh -c "cd cmd/yc && go build -o yc -ldflags='-s -w' -buildvcs=false && mkdir -p ../../bin/ && mv yc ../../bin/"
 ```
-#### Step 3: Build the yc-360 Script
-To build the yc-360 script using the containerized environment, run the following command:
+#### Step 3: Build the Agent
+To build the agent using the containerized environment, run the following command:
 ```
 sudo make alpine base build
 ```
-After successful execution, the yc binary will be created in the `../yc-360-script/bin/` directory.
+After successful execution, the yc binary will be created in the `../yc-data-script/bin/` directory.
 
 
 ## 2. Build on Bare Metal
 
-If you prefer building the yc-360 script directly on your local system, ensure the following packages are installed.
+If you prefer building the agent directly on your local system, ensure the following packages are installed.
 
 **Required Packages:**
 - go
@@ -90,10 +90,10 @@ If you prefer building the yc-360 script directly on your local system, ensure t
 ### Build Steps:
 #### Step 1:  Navigate to the cmd/yc directory inside the repository:
 ```
-cd ../yc-360-script/cmd/yc
+cd ../yc-data-script/cmd/yc
 ```
-#### Step 2: Then run the following command to build the yc-360 script:
+#### Step 2: Then run the following command to build the agent:
 ```
 go build -o yc -ldflags='-s -w' -buildvcs=false && mkdir -p ../../bin/ && mv yc ../../bin/
 ```
-Once the build is completed, the yc binary will be available in the `../yc-360-script/bin/` directory.
+Once the build is completed, the yc binary will be available in the `../yc-data-script/bin/` directory.

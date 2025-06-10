@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -459,12 +458,12 @@ Ignored errors: %v
 	}))
 
 	// ------------------------------------------------------------------------------
-	//   				Capture heap dump
+	//   				Capture Extended Data
 	// ------------------------------------------------------------------------------
-	heapEp := fmt.Sprintf("%s/yc-receiver-heap?%s", config.GlobalConfig.Server, parameters)
-	capHeapDump := capture.NewHeapDump(config.GlobalConfig.JavaHomePath, pid, hdPath, hd)
-	capHeapDump.SetEndpoint(heapEp)
-	heapDump := goCapture(heapEp, capture.WrapRun(capHeapDump))
+	var extendedData chan capture.Result
+	if config.GlobalConfig.EdScript != "" && config.GlobalConfig.EdDataFolder != "" {
+		extendedData = goCapture(endpoint, capture.WrapRun(&capture.ExtendedData{Script: config.GlobalConfig.EdScript, DataFolder: config.GlobalConfig.EdDataFolder}))
+	}
 
 	// stop started tasks
 	if capTop != nil {
@@ -682,11 +681,30 @@ Resp: %s
 	// -------------------------------
 	//     Transmit Heap dump result
 	// -------------------------------
-	if heapDump != nil {
-		logger.Log("Reading result from heapDump channel")
-		result := <-heapDump
+	ep := fmt.Sprintf("%s/yc-receiver-heap?%s", config.GlobalConfig.Server, parameters)
+	capHeapDump := capture.NewHeapDump(config.GlobalConfig.JavaHomePath, pid, hdPath, hd)
+	capHeapDump.SetEndpoint(ep)
+	hdResult, err := capHeapDump.Run()
+	if err != nil {
+		hdResult.Msg = fmt.Sprintf("capture heap dump failed: %s", err.Error())
+		err = nil
+	}
+	logger.Log(
+		`HEAP DUMP DATA
+Is transmission completed: %t
+Resp: %s
+
+--------------------------------
+`, hdResult.Ok, hdResult.Msg)
+
+	// -------------------------------
+	//     Transmit Extended Data
+	// -------------------------------
+	if extendedData != nil {
+		logger.Log("Reading result from extended data channel")
+		result := <-extendedData
 		logger.Log(
-			`HEAP DUMP DATA
+			`EXTENDED DATA
 Is transmission completed: %t
 Resp: %s
 
@@ -779,17 +797,18 @@ var getOutboundIP = capture.GetOutboundIP
 var goCapture = capture.GoCapture
 
 func GetGCLogFile(pid int) (result string, err error) {
-	var output []byte
+	var cmdLine []byte
 	var command executils.Command
-	var logFile string
 	dynamicArg := strconv.Itoa(pid)
 	if runtime.GOOS == "windows" {
 		dynamicArg = fmt.Sprintf("ProcessId=%d", pid)
 	}
+
 	command, _ = executils.GC.AddDynamicArg(dynamicArg)
-	output, err = executils.CommandCombinedOutput(command)
+	cmdLine, err = executils.CommandCombinedOutput(command)
+
 	if err != nil {
-		logger.Log("GetGCLogFile: err in getting process cmdline: %s, output: %s", err.Error(), string(output))
+		logger.Log("GetGCLogFile: err in getting process cmdline: %s, output: %s", err.Error(), string(cmdLine))
 		logger.Log("GetGCLogFile: falling back to gopsutil")
 
 		// Try fallback with gopsutil library
@@ -807,66 +826,12 @@ func GetGCLogFile(pid int) (result string, err error) {
 
 		// Fallback success
 		if cmdLineStr != "" {
-			output = []byte(cmdLineStr)
+			cmdLine = []byte(cmdLineStr)
 			err = nil
 		}
 	}
 
-	if logFile == "" {
-		// Garbage collection log: Attempt 1: -Xloggc:<file-path>
-		re := regexp.MustCompile("-Xloggc:(\\S+)")
-		matches := re.FindSubmatch(output)
-		if len(matches) == 2 {
-			logFile = string(matches[1])
-		}
-	}
-
-	if logFile == "" {
-		// Garbage collection log: Attempt 2: -Xlog:gc*:file=<file-path>
-		// -Xlog[:option]
-		//	option         :=  [<what>][:[<output>][:[<decorators>][:<output-options>]]]
-		// https://openjdk.org/jeps/158
-		re := regexp.MustCompile("-Xlog:gc\\S*:file=(\\S+)")
-		matches := re.FindSubmatch(output)
-		if len(matches) == 2 {
-			logFile = string(matches[1])
-
-			if strings.Contains(logFile, ":") {
-				logFile = java.GetFileFromJEP158(logFile)
-			}
-		}
-	}
-
-	if logFile == "" {
-		// Garbage collection log: Attempt 3: -Xlog:gc:<file-path>
-		re := regexp.MustCompile("-Xlog:gc:(\\S+)")
-		matches := re.FindSubmatch(output)
-		if len(matches) == 2 {
-			logFile = string(matches[1])
-
-			if strings.Contains(logFile, ":") {
-				logFile = java.GetFileFromJEP158(logFile)
-			}
-		}
-	}
-
-	if logFile == "" {
-		// Garbage collection log: Attempt 4: -Xverbosegclog:/tmp/buggy-app-gc-log.%pid.log,20,10
-		re := regexp.MustCompile("-Xverbosegclog:(\\S+)")
-		matches := re.FindSubmatch(output)
-		if len(matches) == 2 {
-			logFile = string(matches[1])
-
-			if strings.Contains(logFile, ",") {
-				splitByComma := strings.Split(logFile, ",")
-				// Check if it's in the form of filename,x,y
-				// Take only filename
-				if len(splitByComma) == 3 {
-					logFile = splitByComma[0]
-				}
-			}
-		}
-	}
+	logFile := ExtractGCLogPathFromCmdline(string(cmdLine))
 
 	result = strings.TrimSpace(logFile)
 	if result != "" && !filepath.IsAbs(result) {
@@ -883,23 +848,6 @@ func GetGCLogFile(pid int) (result string, err error) {
 		}
 	}
 
-	return
-}
-
-// combine previous gc log to new gc log
-func copyFile(gc *os.File, file string, pid int) (err error) {
-	logFile, err := os.Open(file)
-	if err != nil && runtime.GOOS == "linux" {
-		logger.Log("Failed to %s. Trying to open in the Docker container...", err)
-		logFile, err = os.Open(filepath.Join("/proc", strconv.Itoa(pid), "root", file))
-	}
-	if err != nil {
-		return
-	}
-	defer func() {
-		_ = logFile.Close()
-	}()
-	_, err = io.Copy(gc, logFile)
 	return
 }
 
@@ -1079,4 +1027,66 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 		}
 	}
 	return list
+}
+
+func ExtractGCLogPathFromCmdline(cmdline string) string {
+	var logFile string
+	cmdlineBytes := []byte(cmdline)
+
+	if logFile == "" {
+		// Garbage collection log: Attempt 1: -Xloggc:<file-path>
+		re := regexp.MustCompile("-Xloggc:(\\S+)")
+		matches := re.FindSubmatch(cmdlineBytes)
+		if len(matches) == 2 {
+			logFile = string(matches[1])
+		}
+	}
+
+	if logFile == "" {
+		// Garbage collection log: Attempt 2: -Xlog:gc*:file=<file-path>
+		// -Xlog[:option]
+		//	option         :=  [<what>][:[<output>][:[<decorators>][:<output-options>]]]
+		// https://openjdk.org/jeps/158
+		re := regexp.MustCompile("-Xlog:gc\\S*:file=(\\S+)")
+		matches := re.FindSubmatch(cmdlineBytes)
+		if len(matches) == 2 {
+			logFile = string(matches[1])
+
+			if strings.Contains(logFile, ":") {
+				logFile = java.GetFileFromJEP158(logFile)
+			}
+		}
+	}
+
+	if logFile == "" {
+		// Garbage collection log: Attempt 3: -Xlog:gc:<file-path>
+		re := regexp.MustCompile("-Xlog:gc:(\\S+)")
+		matches := re.FindSubmatch(cmdlineBytes)
+		if len(matches) == 2 {
+			logFile = string(matches[1])
+
+			if strings.Contains(logFile, ":") {
+				logFile = java.GetFileFromJEP158(logFile)
+			}
+		}
+	}
+
+	if logFile == "" {
+		// Garbage collection log: Attempt 4: -Xverbosegclog:/tmp/buggy-app-gc-log.%pid.log,20,10
+		re := regexp.MustCompile("-Xverbosegclog:(\\S+)")
+		matches := re.FindSubmatch(cmdlineBytes)
+		if len(matches) == 2 {
+			logFile = string(matches[1])
+
+			if strings.Contains(logFile, ",") {
+				splitByComma := strings.Split(logFile, ",")
+				// Check if it's in the form of filename,x,y
+				// Take only filename
+				if len(splitByComma) == 3 {
+					logFile = splitByComma[0]
+				}
+			}
+		}
+	}
+	return logFile
 }
