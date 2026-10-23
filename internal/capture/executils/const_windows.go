@@ -23,8 +23,8 @@ var (
 	TopH2   = NopCommand
 	Top4M3  = NopCommand
 	VMState = Command{WaitCommand, "PowerShell.exe", "-Command", "& {typeperf -sc 10 -si 5 '\\System\\Processor Queue Length' '\\PhysicalDisk(_Total)\\Current Disk Queue Length' '\\Process(_Total)\\Page File Bytes' '\\Memory\\Available KBytes' '\\Memory\\Modified Page List Bytes' '\\Memory\\Cache Bytes' '\\Memory\\Pages Input/sec' '\\Memory\\Pages Output/sec' '\\PhysicalDisk(_Total)\\Disk Transfers/sec' '\\PhysicalDisk(_Total)\\Disk Writes/sec' '\\Processor(_Total)\\Interrupts/sec' '\\System\\Context Switches/sec' '\\Processor(_Total)\\% User Time' '\\Processor(_Total)\\% Privileged Time' '\\Processor(_Total)\\% Idle Time' '\\Processor(_Total)\\% Interrupt Time' '\\Processor(_Total)\\% DPC Time'}"}
-	DMesg   = Command{WaitCommand, "PowerShell.exe", "-Command", "& {Get-EventLog -LogName System -Newest 20 -EntryType Error,FailureAudit,Warning | Select-Object TimeGenerated, EntryType, Message | ForEach-Object { Write-Host \"$($_.TimeGenerated) [$($_.EntryType)]: $($_.Message)\" }}"}
-	DMesg2  = Command{"wevtutil", "qe", "System", "/c:20", "/rd:true", "/f:text"}
+	DMesg   = Command{WaitCommand, "PowerShell.exe", "-Command", "& {Get-EventLog -LogName System -Newest 100 -EntryType Error,FailureAudit,Warning | ForEach-Object { Write-Host \"$($_.TimeGenerated) [$($_.EntryType)]: $(($_.Message -replace '\\s*[\\r\\n]+\\s*', ' ').Trim()) [Source: $($_.Source), EventID: $($_.EventID)]\" }}"}
+	DMesg2  = Command{"wevtutil", "qe", "System", "/c:100", "/rd:true", "/f:text"}
 	// Was `wmic process where <pid> get ProcessId,Commandline`, replaced by the
 	// CIM equivalent for the same reason as Disk.
 	GC = Command{"PowerShell.exe", "-NoProfile", "-NonInteractive", "-Command",

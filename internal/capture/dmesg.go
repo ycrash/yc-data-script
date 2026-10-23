@@ -71,7 +71,7 @@ func (d *DMesg) captureOutput(file *os.File) error {
 		//
 		// The fallback mechanism triggers on non-zero exit codes, but fails to detect
 		// actual dmesg failures due to how pipes work. The command:
-		//   "dmesg -T --level=emerg,alert,crit,err,warn | tail -20"
+		//   "dmesg -T --level=emerg,alert,crit,err,warn,notice | tail -200"
 		// will return exit code 0 (success) even when dmesg fails, because the exit
 		// code comes from 'tail' rather than 'dmesg'.
 		if errors.Is(err, ErrNonZeroExit) {
