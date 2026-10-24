@@ -89,6 +89,8 @@ func createLongRunningScript(t *testing.T, duration time.Duration) (string, stri
 // pass a valid ed script and ed data folder
 // then upload file and returns result OK
 func TestExtendedData_Run_Success(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	// Step 1: Create a temporary test directory
 	testDir, err := os.MkdirTemp("", "extended-batch-test-*")
 	if err != nil {
@@ -162,6 +164,8 @@ func TestExtendedData_Run_ScriptTimeout(t *testing.T) {
 // the following test checks whether already existing file is not
 // deleted after the extended data is run
 func TestExtendedData_Run_FolderDeleting(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	// Step 1: Create a temporary test directory
 	testDir, err := os.MkdirTemp("", "extended-batch-test-*")
 	if err != nil {
@@ -204,6 +208,8 @@ func TestExtendedData_Run_FolderDeleting(t *testing.T) {
 
 // given the script folder same as extended data folder
 func TestExtendedData_Run_ScriptFolderSameAsDataFolder(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	// Step 1: Create a temporary test directory
 	testDir, err := os.MkdirTemp("", "extended-batch-test-*")
 	if err != nil {
@@ -291,6 +297,8 @@ func TestExtendedData_Run_EmptyScript(t *testing.T) {
 // given data folder as relative path
 // should generate the output file
 func TestExtendedData_Run_RelativePath(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	// Step 1: Create a temporary test directory
 	testDir, err := os.MkdirTemp("", "extended-batch-test-*")
 	if err != nil {
